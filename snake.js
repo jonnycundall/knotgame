@@ -19,8 +19,11 @@
                     this.color = '#DA00CC';
                 };
                 
+                this.food = function () {
+                    this.color = '#999922';
+                };
+                
                 this.timeout = 2;
-            
                 
                 this.draw = function () {
                     context.beginPath();
@@ -33,7 +36,7 @@
             },
             
             grid = function () {
-                this.gridSize = 30;
+                this.gridSize = 15;
                 this.squares = [];
                 
                 //set up grid of squares
@@ -118,8 +121,46 @@
                 }
                 return false;
             };
+            
+            this.eat = function (food) {
+                if(food.position[0] == this.head[0] && 
+                  food.position[1] == this.head[1]){
+                    this.maxLength = this.maxLength + 1;
+                    food.respawn();
+                }
+            }
         }
         
+        var food = function (snake, grid) {
+            this.snake = snake;
+            this.grid = grid;
+            
+            this.draw = function() {
+                this.grid.squares[this.position[0]][this.position[1]].food();
+            };            
+            
+            var randomPosition  = function (grid) {
+                return Math.floor(Math.random() * grid.gridSize);
+            }
+                
+            this.getNewPosition = function (grid) {
+                var candidate = [randomPosition(grid), randomPosition(grid)];
+                while (this.snake.collision(candidate, this.snake.body) 
+                     || this.snake.collision(candidate, this.snake.head))
+                      {
+                          candidate = [0,0];
+                            candidate[0] = randomPosition(grid);
+                            candidate[1] = randomPosition(grid);
+                      };
+                return candidate;
+            }
+            
+            this.respawn = function() {
+                this.position = this.getNewPosition(this.grid);
+            }
+            this.position = this.getNewPosition(this.grid);
+        };
+            
         var bigGrid = new grid();   
         
         var showPlayAgain = function() {
@@ -131,13 +172,17 @@
             currentGame = new game();   
         },
             liveSnake,
+            liveFood,
             game = function () {
-                liveSnake = new snake([4,5],bigGrid);   
+                liveSnake = new snake([4,5],bigGrid); 
+                liveFood = new food (liveSnake, bigGrid);
                 var intervalId = setInterval(
                     function(){
                         if(liveSnake.dead == false){
-                        liveSnake.move().draw();
-                        bigGrid.draw()
+                            liveSnake.move().draw();
+                            liveSnake.eat(liveFood);
+                            liveFood.draw();
+                            bigGrid.draw()
                         } else {
                             showPlayAgain();
                             clearInterval(intervalId);
