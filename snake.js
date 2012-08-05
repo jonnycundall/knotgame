@@ -61,11 +61,19 @@
                             }
                         }
                     };
+                
+            var randomPosition  = function (grid) {
+                return Math.floor(Math.random() * grid.gridSize);
+                }
+                
+            this.randomSquarePosition = function () {
+                return [randomPosition(this), randomPosition(this)];
+                }
             };
             
         
-        var snake = function(start, grid){
-            this.head = start;
+        var snake = function(grid){
+            this.head = grid.randomSquarePosition();
             this.dead = false;
             this.grid = grid;
             this.body = [];
@@ -138,19 +146,13 @@
             this.draw = function() {
                 this.grid.squares[this.position[0]][this.position[1]].food();
             };            
-            
-            var randomPosition  = function (grid) {
-                return Math.floor(Math.random() * grid.gridSize);
-            }
                 
             this.getNewPosition = function (grid) {
-                var candidate = [randomPosition(grid), randomPosition(grid)];
+                var candidate = grid.randomSquarePosition();
                 while (this.snake.collision(candidate, this.snake.body) 
                      || this.snake.collision(candidate, this.snake.head))
-                      {
-                          candidate = [0,0];
-                            candidate[0] = randomPosition(grid);
-                            candidate[1] = randomPosition(grid);
+                {
+                          candidate = grid.randomSquarePosition();
                       };
                 return candidate;
             }
@@ -174,7 +176,7 @@
             liveSnake,
             liveFood,
             game = function () {
-                liveSnake = new snake([4,5],bigGrid); 
+                liveSnake = new snake(bigGrid); 
                 liveFood = new food (liveSnake, bigGrid);
                 var intervalId = setInterval(
                     function(){
