@@ -28,7 +28,11 @@
                 this.draw = function () {
                     context.beginPath();
                     context.rect(this.right, this.top, 20, 20);
-                    context.fillStyle = this.color;
+                    //context.fillStyle = this.color;
+                    var lingrad = context.createLinearGradient(0, 0, 300, 300);
+                        lingrad.addColorStop(0, this.color);
+                        lingrad.addColorStop(1, '#fff');
+                    context.fillStyle = lingrad;
                     context.fill();
                     context.closePath();
                     this.color = '#FFFFFF';
