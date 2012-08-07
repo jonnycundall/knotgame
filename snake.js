@@ -13,30 +13,54 @@
                 this.y = yPos;
                 this.top = yPos * 20;
                 this.right = xPos * 20;
-                this.color = '#FFFFFF';
                 
-                this.activate = function () {
-                    this.color = '#DA00CC';
+                this.head = function(neckDirection) {
+                    this.isHead = true;
+                    this.isSnake = true;
+                    this.followingDirection = neckDirection;
                 };
                 
+                this.body = function(precedingDirection, followingDirection) {
+                    this.isSnake = true;
+                    this.precedingDirection = precedingDirection;
+                    this.followingDirection = followingDirection;
+                };
+                    
                 this.food = function () {
                     this.color = '#999922';
+                    this.isFood = true;
                 };
                 
                 this.timeout = 2;
                 
                 this.draw = function () {
+                    var color = '#fff';
+                    if(this.isSnake == true)
+                    {
+                        color = '#DA00CC';
+                    }else if(this.isFood == true)
+                    {
+                        color = '#999922';
+                    }
+                    
                     context.beginPath();
                     context.rect(this.right, this.top, 20, 20);
-                    //context.fillStyle = this.color;
                     var lingrad = context.createLinearGradient(0, 0, 300, 300);
-                        lingrad.addColorStop(0, this.color);
+                        lingrad.addColorStop(0, color);
                         lingrad.addColorStop(1, '#fff');
                     context.fillStyle = lingrad;
                     context.fill();
                     context.closePath();
-                    this.color = '#FFFFFF';
+                    this.clear();
                 };
+                
+                this.clear = function() {
+                    this.isFood = false;
+                    this.isSnake = false;
+                    this.isHead = false;
+                    this.precedingDirection = undefined;
+                    this.followingDirection - undefined;
+                }
             },
             
             grid = function () {
@@ -99,9 +123,9 @@
             }
              
             this.draw = function(){
-                this.grid.squares[this.head[0]][this.head[1]].activate();
+                this.grid.squares[this.head[0]][this.head[1]].head('foo');
                 for(var i=0; i<this.body.length; i++){
-                   this.grid.squares[this.body[i][0]][this.body[i][1]].activate(); 
+                   this.grid.squares[this.body[i][0]][this.body[i][1]].body('foo', 'bar'); 
                 }
             };
             
