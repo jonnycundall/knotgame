@@ -101,7 +101,7 @@
             
         
         var snake = function(grid){
-            this.head = grid.randomSquarePosition();
+            this.head = [grid.randomSquarePosition(),null];
             this.dead = false;
             this.grid = grid;
             this.body = [];
@@ -116,16 +116,18 @@
                 {
                     this.body = this.body.slice(1);
                 }
-                this.head = this.nextSquare(this.head, this.direction);
-                if(this.collision(this.head,this.body) == true)
+                this.head = [this.nextSquare(this.head[0], this.direction),this.direction];
+                if(this.collision(this.head[0], this.body) == true)
                     this.dead = true;
                 return this;
             }
-             
+            
             this.draw = function(){
-                this.grid.squares[this.head[0]][this.head[1]].head('foo');
+                this.grid.squares[this.head[0][0]][this.head[0][1]].head(this.direction);
                 for(var i=0; i<this.body.length; i++){
-                   this.grid.squares[this.body[i][0]][this.body[i][1]].body('foo', 'bar'); 
+                    var prevDirection = i > 0 ? this.body[i-1][1] : this.head[1];
+                    var nextDirection = this.body[i][1];
+                   this.grid.squares[this.body[i][0][0]][this.body[i][0][1]].body(prevDirection, nextDirection); 
                 }
             };
             
@@ -150,17 +152,42 @@
                 }   
             };
             
-            this.collision = function(head, body){
-                for(var i = 0; i < body.length; i++)
+            this.collision = function(candidate, collider){
+                //check that the canidate is a point [x,y]    
+                if(!(this.isPoint(candidate)))
                 {
-                    if(head[0] == body[i][0] && head[1] == body[i][1]) return true;
+                    console.log('invalid point in collision');
+                    return false;
+                }
+                if(this.isPoint(collider))
+                {
+                    return this.collisionWithPoint(candidate, collider);
+                }
+                return this.collisionWithChain(candidate, collider);
+            }
+            
+           this.collisionWithPoint = function(candidate, collider){
+                return candidate[0] === collider[0] && candidate[1] === collider[1];
+            }
+                
+            this.collisionWithChain = function(candidate, collider){
+                for(var i = 0; i < collider.length; i++)
+                {
+                    if(candidate[0] == collider[i][0][0] && candidate[1] == collider[i][0][1]) return true;
                 }
                 return false;
-            };
-            
+            }
+                    
+            this.isPoint = function(point){
+                    if(point.length != 2 || !(typeof(point[0]) === 'number' && typeof(point[1]) === 'number'))
+                {
+                    return false;
+                }
+                return true;
+            }
+                
             this.eat = function (food) {
-                if(food.position[0] == this.head[0] && 
-                  food.position[1] == this.head[1]){
+                if(this.collision(food.position,this.head[0])){
                     this.maxLength = this.maxLength + 1;
                     food.respawn();
                 }
@@ -177,8 +204,7 @@
                 
             this.getNewPosition = function (grid) {
                 var candidate = grid.randomSquarePosition();
-                while (this.snake.collision(candidate, this.snake.body) 
-                     || this.snake.collision(candidate, this.snake.head))
+                while (this.snake.collision(candidate, this.snake.head[0]) || this.snake.collision(candidate,this.snake.body))
                 {
                           candidate = grid.randomSquarePosition();
                       };
