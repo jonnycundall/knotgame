@@ -38,6 +38,7 @@
                     if(this.isSnake == true)
                     {
                         color = '#DA00CC';
+    
                     }else if(this.isFood == true)
                     {
                         color = '#999922';
@@ -51,6 +52,21 @@
                     context.fillStyle = lingrad;
                     context.fill();
                     context.closePath();
+                    if(this.precedingDirection && this.followingDirection)
+                    {
+                        context.beginPath();
+                        var centre = [this.right + 0.5, this.top + 0.5];
+                        
+                        context.moveTo(centre[0] - 0.5 * this.precedingDirection[0], centre[1] - 0.5 * this.precedingDirection[1]);
+                        context.bezierCurveTo(
+                                       centre[0] - 0.25 * this.precedingDirection[0],
+                                       centre[1] - 0.25 * this.precedingDirection[1],
+                                       centre[0] + 0.25 * this.followingDirection[0],
+                                       centre[1] + 0.25 * this.followingDirection[1],
+                                       centre[0] + 0.25 * this.followingDirection[0],
+                                       centre[1] + 0.25 * this.followingDirection[1]);
+                        context.stroke();;
+                    }
                     this.clear();
                 };
                 
@@ -249,5 +265,7 @@
             };
         var currentGame = new game();
         document.getElementById('playAgainButton').onclick = playAgain;
+        drawingContext.lineWidth = 4;
+        
     } 
 })();
