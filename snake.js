@@ -35,7 +35,7 @@
                 
                 this.draw = function () {
                     var color = '#fff';
-                    if(this.isSnake == true)
+                    if(this.isHead == true)
                     {
                         color = '#DA00CC';
     
@@ -55,16 +55,16 @@
                     if(this.precedingDirection && this.followingDirection)
                     {
                         context.beginPath();
-                        var centre = [this.right + 0.5, this.top + 0.5];
+                        var centre = [this.right + 10, this.top + 10];
                         
-                        context.moveTo(centre[0] - 0.5 * this.precedingDirection[0], centre[1] - 0.5 * this.precedingDirection[1]);
+                        context.moveTo(centre[0] - 10 * this.precedingDirection[0], centre[1] - 10 * this.precedingDirection[1]);
                         context.bezierCurveTo(
-                                       centre[0] - 0.25 * this.precedingDirection[0],
-                                       centre[1] - 0.25 * this.precedingDirection[1],
-                                       centre[0] + 0.25 * this.followingDirection[0],
-                                       centre[1] + 0.25 * this.followingDirection[1],
-                                       centre[0] + 0.25 * this.followingDirection[0],
-                                       centre[1] + 0.25 * this.followingDirection[1]);
+                                       centre[0] - 5 * this.precedingDirection[0],
+                                       centre[1] - 5 * this.precedingDirection[1],
+                                       centre[0] + 5 * this.followingDirection[0],
+                                       centre[1] + 5 * this.followingDirection[1],
+                                       centre[0] + 10 * this.followingDirection[0],
+                                       centre[1] + 10 * this.followingDirection[1]);
                         context.stroke();;
                     }
                     this.clear();
@@ -141,8 +141,9 @@
             this.draw = function(){
                 this.grid.squares[this.head[0][0]][this.head[0][1]].head(this.direction);
                 for(var i=0; i<this.body.length; i++){
-                    var prevDirection = i > 0 ? this.body[i-1][1] : this.head[1];
-                    var nextDirection = this.body[i][1];
+                    var prevDirection = i > 0 ? this.body[i][1] : this.head[1];
+                    var nextDirection;
+                    if(i < this.body.length - 1){ nextDirection = this.body[i+1][1]};
                    this.grid.squares[this.body[i][0][0]][this.body[i][0][1]].body(prevDirection, nextDirection); 
                 }
             };
