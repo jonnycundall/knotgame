@@ -54,6 +54,8 @@
                     context.closePath();
                     if(this.precedingDirection && this.followingDirection)
                     {
+                        context.lineWidth = 10;
+                        context.strokeStyle = '#000';
                         context.beginPath();
                         var centre = [this.right + 10, this.top + 10];
                         
@@ -65,7 +67,21 @@
                                        centre[1] + 5 * this.followingDirection[1],
                                        centre[0] + 10 * this.followingDirection[0],
                                        centre[1] + 10 * this.followingDirection[1]);
-                        context.stroke();;
+                        context.stroke();
+                        context.lineWidth = 5;
+                        context.strokeStyle = '#FFF';
+                        context.beginPath();
+                        var centre = [this.right + 10, this.top + 10];
+                        
+                        context.moveTo(centre[0] - 10 * this.precedingDirection[0], centre[1] - 10 * this.precedingDirection[1]);
+                        context.bezierCurveTo(
+                                       centre[0] - 5 * this.precedingDirection[0],
+                                       centre[1] - 5 * this.precedingDirection[1],
+                                       centre[0] + 5 * this.followingDirection[0],
+                                       centre[1] + 5 * this.followingDirection[1],
+                                       centre[0] + 10 * this.followingDirection[0],
+                                       centre[1] + 10 * this.followingDirection[1]);
+                        context.stroke();
                     }
                     this.clear();
                 };
