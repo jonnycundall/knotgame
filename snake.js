@@ -1,4 +1,4 @@
-(function () {
+/*(function () {
     "use strict";
     var NONE = [0, 0],
         LEFT = [-1, 0],
@@ -280,9 +280,32 @@
                     
                 document.onkeydown = liveSnake.keyHandler;
             };
-        var currentGame = new game();
+        //var currentGame = new game();
         document.getElementById('playAgainButton').onclick = playAgain;
         drawingContext.lineWidth = 4;
         
     } 
-})();
+})();*/
+
+(function () {
+    "use strict";
+    var showPlayAgain, playAgain, drawingCanvas, drawingContext, game, currentGame;
+    showPlayAgain = function () {
+        document.getElementById('playAgain').setAttribute('style', '');
+    };
+        
+    playAgain = function () {
+        document.getElementById('playAgain').setAttribute('style', 'visibility: hidden;');
+        currentGame = game()
+    };
+    drawingCanvas = document.getElementById('gameArea');
+    if (drawingCanvas.getContext) {
+        drawingContext = drawingCanvas.getContext('2d');
+    }
+    game = function () {
+        console.log(drawingCanvas.height);
+    };
+    showPlayAgain();
+    document.getElementById('playAgainButton').onclick = playAgain;
+}());
+
