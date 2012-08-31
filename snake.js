@@ -289,23 +289,33 @@
 
 (function () {
     "use strict";
-    var showPlayAgain, playAgain, drawingCanvas, drawingContext, game, currentGame;
+    var showPlayAgain, playAgain, drawingCanvas, drawingContext, game, currentGame, doc, 
+        snake, gameArea;
+    
+    doc = document;
     showPlayAgain = function () {
         document.getElementById('playAgain').setAttribute('style', '');
     };
         
     playAgain = function () {
-        document.getElementById('playAgain').setAttribute('style', 'visibility: hidden;');
-        currentGame = game()
+        doc.getElementById('playAgain').setAttribute('style', 'visibility: hidden;');
+        currentGame = game();
     };
-    drawingCanvas = document.getElementById('gameArea');
-    if (drawingCanvas.getContext) {
+    
+    drawingCanvas = doc.getElementById('gameArea');
+    
+    if (drawingCanvas && drawingCanvas.getContext) {
         drawingContext = drawingCanvas.getContext('2d');
     }
+    
     game = function () {
-        console.log(drawingCanvas.height);
+        gameArea = 
+        snake = initializeSnake(drawingCanvas);
     };
+    
     showPlayAgain();
-    document.getElementById('playAgainButton').onclick = playAgain;
+    doc.getElementById('playAgainButton').onclick = playAgain;
 }());
+
+
 
