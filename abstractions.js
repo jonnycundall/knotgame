@@ -1,4 +1,4 @@
-var initializeGameArea;
+var initializeGameArea, initializeRenderer;
 //the gameArea object is responsible for mapping between physical coordinates on the canvas 
 //and logical coordinates in the game 
 initializeGameArea = function (canvas) {
@@ -19,5 +19,8 @@ initializeGameArea = function (canvas) {
             return [logicalPointX * gridSquareSize, logicalPointY * gridSquareSize];
         }
     };
+    
     return gameArea;
 };
+
+snake.render(1,2
