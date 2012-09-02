@@ -23,4 +23,15 @@ initializeGameArea = function (canvas) {
     return gameArea;
 };
 
-snake.render(1,2
+// given rendering commands by the game object, this draws them on the canvas 
+// using the drawingContext
+initializeRenderer = function (context, gameArea) {
+    var renderer = {};
+    
+    //skeleton method - I'll implement some game objects first
+    renderer.drawCurve = function (pointArray, startCondition, endCondition){
+        console.log('drawcurve ' + pointArray[0] + ' ' + startCondition + endCondition);
+    }
+    
+    return renderer;
+}
