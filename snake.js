@@ -309,7 +309,7 @@
     }
     
     game = function () {
-        gameArea = initializeGameArea(drawingCanvas);
+        gameArea = gameArea(drawingCanvas);
         snake = initializeSnake(drawingCanvas);
     };
     
