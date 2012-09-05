@@ -42,7 +42,7 @@ gameArea = function (canvas) {
 // using the drawingContext
 initializeRenderer = function (canvas, gameArea) {
     "use strict";
-    var renderer = {}, previousPoint, nextPoint, thisPoint, i, context;
+    var renderer = {}, previousPoint, nextPoint, thisPoint, i, context, curveStart, curveEnd;
     context = canvas.getContext('2d');
     renderer.drawCurve = function (pointArray, startCondition, endCondition) {
         context.lineWidth = 2;
@@ -53,7 +53,9 @@ initializeRenderer = function (canvas, gameArea) {
             if (previousPoint) {
                 thisPoint = gameArea.point(pointArray[i][0], pointArray[i][1]);
                 nextPoint = gameArea.point(pointArray[i + 1][0], pointArray[i + 1][1]);
-                context.quadraticCurveTo(thisPoint[0], thisPoint[1], nextPoint[0], nextPoint[1]);
+                curveStart = Geometry.midpoint(previousPoint, thisPoint);
+                curveEnd = Geometry.midpoint(thisPoint, nextPoint);
+                context.quadraticCurveTo(curveStart[0], curveStart[1], curveEnd[0], curveEnd[1]);
                 context.moveTo(thisPoint[0], thisPoint[1]);
             }
             
@@ -132,3 +134,9 @@ userInput = function () {
         
     return obj;
 };
+        
+Geometry =  {
+    midpoint: function (point1, point2) {
+        return [(point1[0] + point2[0]) / 2, (point1[0] + point2[1]) / 2];
+    }
+}
