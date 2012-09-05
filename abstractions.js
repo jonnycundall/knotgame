@@ -40,13 +40,27 @@ gameArea = function (canvas) {
 
 // given rendering commands by the game object, this draws them on the canvas 
 // using the drawingContext
-initializeRenderer = function (context, gameArea) {
+initializeRenderer = function (canvas, gameArea) {
     "use strict";
-    var renderer = {};
-    
-    //skeleton method - I'll implement some game objects first
+    var renderer = {}, previousPoint, nextPoint, thisPoint, i, context;
+    context = canvas.getContext('2d');
     renderer.drawCurve = function (pointArray, startCondition, endCondition) {
-        console.log('drawcurve ' + pointArray[0] + ' ' + startCondition + endCondition);
+        context.lineWidth = 2;
+        context.strokeStyle = '#000';
+        context.beginPath();
+        context.moveTo(pointArray[0][0], pointArray[0][1]);
+        for (i = 0; i < pointArray.length - 1; i++) {
+            if (previousPoint) {
+                thisPoint = gameArea.point(pointArray[i][0], pointArray[i][1]);
+                nextPoint = gameArea.point(pointArray[i + 1][0], pointArray[i + 1][1]);
+                context.quadraticCurveTo(thisPoint[0], thisPoint[1], nextPoint[0], nextPoint[1]);
+                context.moveTo(thisPoint[0], thisPoint[1]);
+            }
+            
+            previousPoint = thisPoint || gameArea.point(pointArray[i][0], pointArray[i][1]);
+        }
+        context.stroke();
+        
     };
     
     return renderer;
@@ -81,7 +95,7 @@ snake = function (renderer, gameArea) {
     };
     
     obj.draw = function () {
-        //do stuff with renderer
+        renderer.drawCurve(tail);
     };
     
     return obj;

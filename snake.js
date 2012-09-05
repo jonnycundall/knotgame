@@ -290,7 +290,7 @@
 (function () {
     "use strict";
     var showPlayAgain, playAgain, drawingCanvas, drawingContext, game, currentGame, doc,
-        cord, area, input, intervalId;
+        cord, area, input, intervalId, renderer;
     
     doc = document;
     showPlayAgain = function () {
@@ -310,7 +310,8 @@
     
     game = function () {
         area = gameArea(drawingCanvas);
-        cord = snake(null, area);
+        renderer = initializeRenderer(drawingCanvas, area);
+        cord = snake(renderer, area);
         
         intervalId = setInterval(function () {
             cord.move(input.direction());
