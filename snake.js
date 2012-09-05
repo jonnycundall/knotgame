@@ -289,8 +289,8 @@
 
 (function () {
     "use strict";
-    var showPlayAgain, playAgain, drawingCanvas, drawingContext, game, currentGame, doc, 
-        snake, gameArea;
+    var showPlayAgain, playAgain, drawingCanvas, drawingContext, game, currentGame, doc,
+        cord, area, input, intervalId;
     
     doc = document;
     showPlayAgain = function () {
@@ -309,12 +309,20 @@
     }
     
     game = function () {
-        gameArea = gameArea(drawingCanvas);
-        snake = initializeSnake(drawingCanvas);
+        area = gameArea(drawingCanvas);
+        cord = snake(null, area);
+        
+        intervalId = setInterval(function () {
+            cord.move(input.direction());
+            cord.draw();
+        },
+            300);
     };
     
     showPlayAgain();
     doc.getElementById('playAgainButton').onclick = playAgain;
+    input = userInput();
+    doc.onkeydown = input.keyHandler;
 }());
 
 
