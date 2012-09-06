@@ -315,6 +315,7 @@
         
         intervalId = setInterval(function () {
             cord.move(input.direction());
+            renderer.clear();
             cord.draw();
         },
             300);

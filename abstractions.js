@@ -53,26 +53,40 @@ initializeRenderer = function (canvas, gameArea) {
             if (previousPoint) {
                 thisPoint = gameArea.point(pointArray[i][0], pointArray[i][1]);
                 nextPoint = gameArea.point(pointArray[i + 1][0], pointArray[i + 1][1]);
+
                 curveStart = Geometry.midpoint(previousPoint, thisPoint);
                 curveEnd = Geometry.midpoint(thisPoint, nextPoint);
-                context.quadraticCurveTo(curveStart[0], curveStart[1], curveEnd[0], curveEnd[1]);
-                context.moveTo(thisPoint[0], thisPoint[1]);
+                context.moveTo(curveStart[0], curveStart[1]);
+                context.quadraticCurveTo(thisPoint[0], thisPoint[1], curveEnd[0], curveEnd[1]);
+                
             }
-            
-            previousPoint = thisPoint || gameArea.point(pointArray[i][0], pointArray[i][1]);
+            if (thisPoint) {
+                previousPoint = [thisPoint[0], thisPoint[1]];
+            } else {
+                previousPoint = gameArea.point(pointArray[i][0], pointArray[i][1])
+            }
         }
         context.stroke();
         
     };
     
+    renderer.clear = function () {
+        context.beginPath();
+        context.rect(0, 0, 600, 600);
+        context.fillStyle = '#fff';
+        context.fill();
+        context.closePath();
+    };
+        
     return renderer;
 };
     
 snake = function (renderer, gameArea) {
     "use strict";
-    var head, tail, obj, nextSquare;
+    var head, tail, obj, nextSquare, maxLength;
     head = gameArea.randomPoint();
     tail = [];
+    maxLength = 20;
     
     nextSquare = function (direction) {
         if (!direction) {
@@ -91,9 +105,10 @@ snake = function (renderer, gameArea) {
         
         nextPosition = nextSquare(direction);
         if (nextPosition) {
-            tail.push(head);
+            tail.splice(0,0,head);
             head = nextPosition;
         }
+        tail = tail.slice(0, maxLength);
     };
     
     obj.draw = function () {
@@ -137,6 +152,13 @@ userInput = function () {
         
 Geometry =  {
     midpoint: function (point1, point2) {
-        return [(point1[0] + point2[0]) / 2, (point1[0] + point2[1]) / 2];
-    }
+        return [(point1[0] + point2[0]) / 2, (point1[1] + point2[1]) / 2];
+    },
+    
+    isCollinear: function (point1, point2, point3) {
+        var vector1, vector2;
+        vector1 = [point2[0] - point1[0], point2[1] - point1[1]];
+        vector2 = [point3[0] - point2[0], point3[1] - point2[1]];
+        return vector1[0] * vector2[1] - vector1[1] * vector2[0] === 0;
+    },
 }
