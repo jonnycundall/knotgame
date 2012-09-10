@@ -67,6 +67,8 @@ snake = function (renderer, gameArea) {
             head = nextPosition;
         }
         tail = tail.slice(0, maxLength);
+        
+        return direction;
     };
     
     obj.draw = function () {
@@ -103,6 +105,10 @@ userInput = function () {
     
     obj.direction = function () {
         return direction;
+    };
+    
+    obj.setDirection = function(dir) {
+        direction = dir;
     };
         
     return obj;

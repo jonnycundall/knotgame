@@ -20,12 +20,14 @@
     }
     
     game = function () {
+        var newDirection;
         area = gameArea(drawingCanvas);
         renderer = initializeRenderer(drawingCanvas, area);
         cord = snake(renderer, area);
         
         intervalId = setInterval(function () {
-            cord.move(input.direction());
+            newDirection = cord.move(input.direction());
+            input.setDirection(newDirection);
             renderer.clear();
             cord.draw();
         },
