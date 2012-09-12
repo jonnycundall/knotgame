@@ -59,11 +59,13 @@ snake = function (renderer, gameArea) {
     obj = {};
     
     obj.move = function (direction) {
-        var nextPosition;
-        direction = guider.correctDirection(direction, head);
+        var nextPosition, lastPosition;
+        lastPosition = tail[0];
+        
+        direction = guider.correctDirection(direction, head, lastPosition);
         nextPosition = nextSquare(direction);
         if (nextPosition) {
-            tail.splice(0,0,head);
+            tail.splice(0, 0, head);
             head = nextPosition;
         }
         tail = tail.slice(0, maxLength);
@@ -107,7 +109,7 @@ userInput = function () {
         return direction;
     };
     
-    obj.setDirection = function(dir) {
+    obj.setDirection = function (dir) {
         direction = dir;
     };
         
@@ -128,44 +130,53 @@ Geometry =  {
     
     distance: function (point1, point2) {
         return Math.sqrt(Math.pow(point2[0] - point1[0], 2) + Math.pow(point2[1] - point1[1]));
+    },
+    
+    addVectors: function (vector1, vector2) {
+        return [vector1[0] + vector2[0], vector1[1] + vector2[1]];
+    },
+    
+    pointEquals: function (point1, point2) {
+        return point1 && point2 &&
+            point1[0] === point2[0] && point1[1] === point2[1];
+    },
+    
+    vectorReverse: function (vector) {
+        return [vector[0] * -1, vector[1] * -1];
     }
 };
     
 directionGuider = function (area) {
     'use strict';
     var guider = {};
-    guider.correctDirection = function (proposedDirection, currentPosition) {
-        if (!currentPosition || !proposedDirection) {
-            return proposedDirection;
-        }
-        if (proposedDirection[0] === UP[0] && proposedDirection[1] === UP[1] 
-            && currentPosition[1] <= 0) {
-            if (currentPosition[0] <= 0) {
-                return DOWN;
+    guider.correctDirection = function (proposedDirection, currentPosition, previousPosition) {
+        var i, nextMove, turnLeft, reversed;
+        turnLeft = function (vector) {
+            return [vector[1], -1 * vector[0]];
+        };
+        
+        if (currentPosition && proposedDirection) {
+            for (i = 0; i < 4; i++) {
+                nextMove = Geometry.addVectors(proposedDirection, currentPosition);
+                //prevent user from reversing direction
+                if (i === 0 && Geometry.pointEquals(nextMove, previousPosition)) {
+                    reversed = Geometry.vectorReverse(proposedDirection);
+                    if (Geometry.pointEquals(
+                            guider.correctDirection(reversed, currentPosition, Geometry.addVectors(currentPosition, proposedDirection)),
+                            reversed
+                        )) {
+                        return reversed;
+                    }
+                }
+                        
+                if (nextMove[0] >= 0 && nextMove[0] <= area.width
+                        && nextMove[1] >= 0 && nextMove[1] <= area.height) {
+                    return proposedDirection;
+                }
+                proposedDirection = turnLeft(proposedDirection);
             }
-            return LEFT;
         }
-        if (proposedDirection[0] === LEFT[0] && proposedDirection[1] === LEFT[1] 
-            && currentPosition[0] <= 0) {
-            if (currentPosition[1] >= area.height) {
-                return RIGHT;
-            }
-            return DOWN;
-        }
-        if (proposedDirection[0] === DOWN[0] && proposedDirection[1] === DOWN[1] 
-            && currentPosition[1] >= area.height) {
-            if (currentPosition[0] >= area.width) {
-                return UP;
-            }
-            return RIGHT;
-        }
-        if (proposedDirection[0] === RIGHT[0] && proposedDirection[1] === RIGHT[1] 
-            && currentPosition[0] >= area.width) {
-            if (currentPosition[1] <= 0) {
-                return LEFT;
-            }
-            return UP;
-        }
+
         return proposedDirection;
     };
     return guider;
