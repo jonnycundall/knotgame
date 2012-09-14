@@ -34,7 +34,7 @@ describe("tests that directionGuider prevents snake from leaving the game area",
         expect(newDirection[1]).toEqual(-1);
     });
     
-    it("should convert right to left on top right corner", function () {
+    it("should convert right to down on top right corner", function () {
         var area = { height: 10, width: 10 }, 
             guider = directionGuider(area),
             newDirection = guider.correctDirection([1, 0], [10, 0], [9, 0]);
@@ -58,6 +58,14 @@ describe('directionGuider: prevent user from reversing direction',  function () 
             newDirection = guider.correctDirection([-1, 0], [4, 5], [3, 5]);
         expect(newDirection[0]).toEqual(1);
         expect(newDirection[1]).toEqual(0);
+    });
+    
+    it('should turn rather than reverse on the edge', function () {
+                var area = { height: 10, width: 10 }, 
+            guider = directionGuider(area),
+            newDirection = guider.correctDirection([-1, 0], [10, 5], [9, 5]);
+        expect(newDirection[0]).toEqual(0);
+        expect(newDirection[1]).toEqual(-1);
     });
 });
 

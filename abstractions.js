@@ -32,7 +32,11 @@ gameArea = function (canvas) {
         },
         randomPoint: function () {
             return [randomPosition(width), randomPosition(height)];
-        }
+        },
+        inBounds: function(point) {
+            return (point[0] >= 0 && point[0] <= width
+                && point[1] >= 0 && point[1] <= height);
+        },
     };
     
     return area;
@@ -150,7 +154,7 @@ directionGuider = function (area) {
     'use strict';
     var guider = {};
     guider.correctDirection = function (proposedDirection, currentPosition, previousPosition) {
-        var i, nextMove, turnLeft, reversed;
+        var i, nextMove, turnLeft, reversed, recorrected;
         turnLeft = function (vector) {
             return [vector[1], -1 * vector[0]];
         };
@@ -159,13 +163,17 @@ directionGuider = function (area) {
             for (i = 0; i < 4; i++) {
                 nextMove = Geometry.addVectors(proposedDirection, currentPosition);
                 //prevent user from reversing direction
+                
                 if (i === 0 && Geometry.pointEquals(nextMove, previousPosition)) {
                     reversed = Geometry.vectorReverse(proposedDirection);
-                    if (Geometry.pointEquals(
-                            guider.correctDirection(reversed, currentPosition, Geometry.addVectors(currentPosition, proposedDirection)),
+                    recorrected = guider.correctDirection(reversed, currentPosition, Geometry.addVectors(currentPosition, proposedDirection))
+                 if (Geometry.pointEquals(
+                            recorrected,
                             reversed
                         )) {
                         return reversed;
+                    } else {
+                        return recorrected;
                     }
                 }
                         
@@ -175,6 +183,7 @@ directionGuider = function (area) {
                 }
                 proposedDirection = turnLeft(proposedDirection);
             }
+            
         }
 
         return proposedDirection;
