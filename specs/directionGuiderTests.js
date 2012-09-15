@@ -38,8 +38,8 @@ describe("tests that directionGuider prevents snake from leaving the game area",
         var area = { height: 10, width: 10 }, 
             guider = directionGuider(area),
             newDirection = guider.correctDirection([1, 0], [10, 0], [9, 0]);
-        expect(newDirection[0]).toEqual(-1);
-        expect(newDirection[1]).toEqual(0);
+        expect(newDirection[0]).toEqual(0);
+        expect(newDirection[1]).toEqual(1);
     });
     
     it("should leave direction alone if we're not on the edge", function () {

@@ -36,7 +36,7 @@ gameArea = function (canvas) {
         inBounds: function(point) {
             return (point[0] >= 0 && point[0] <= width
                 && point[1] >= 0 && point[1] <= height);
-        },
+        }
     };
     
     return area;
@@ -137,7 +137,9 @@ Geometry =  {
     },
     
     addVectors: function (vector1, vector2) {
+        if (vector1 && vector2) {
         return [vector1[0] + vector2[0], vector1[1] + vector2[1]];
+        }
     },
     
     pointEquals: function (point1, point2) {
@@ -146,7 +148,9 @@ Geometry =  {
     },
     
     vectorReverse: function (vector) {
-        return [vector[0] * -1, vector[1] * -1];
+        if (vector) {
+            return [vector[0] * -1, vector[1] * -1];
+        }
     }
 };
     
@@ -159,31 +163,23 @@ directionGuider = function (area) {
             return [vector[1], -1 * vector[0]];
         };
         
+        //if we are trying to reverse on ourselves, propose going forward in the same direction as before
+        reversed = Geometry.addVectors(previousPosition, Geometry.vectorReverse(currentPosition));
+        if (reversed && Geometry.pointEquals(reversed, proposedDirection)) {
+            proposedDirection = Geometry.vectorReverse(reversed);
+        }
+
         if (currentPosition && proposedDirection) {
             for (i = 0; i < 4; i++) {
                 nextMove = Geometry.addVectors(proposedDirection, currentPosition);
-                //prevent user from reversing direction
                 
-                if (i === 0 && Geometry.pointEquals(nextMove, previousPosition)) {
-                    reversed = Geometry.vectorReverse(proposedDirection);
-                    recorrected = guider.correctDirection(reversed, currentPosition, Geometry.addVectors(currentPosition, proposedDirection))
-                 if (Geometry.pointEquals(
-                            recorrected,
-                            reversed
-                        )) {
-                        return reversed;
-                    } else {
-                        return recorrected;
-                    }
-                }
-                        
-                if (nextMove[0] >= 0 && nextMove[0] <= area.width
+                if (!Geometry.pointEquals(proposedDirection, reversed)
+                        && nextMove[0] >= 0 && nextMove[0] <= area.width
                         && nextMove[1] >= 0 && nextMove[1] <= area.height) {
                     return proposedDirection;
                 }
                 proposedDirection = turnLeft(proposedDirection);
             }
-            
         }
 
         return proposedDirection;
