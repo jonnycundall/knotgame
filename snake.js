@@ -24,10 +24,10 @@
         area = gameArea(drawingCanvas);
         renderer = initializeRenderer(drawingCanvas, area);
         cord = snake(renderer, area);
-        
         intervalId = setInterval(function () {
-            newDirection = cord.move(input.direction());
+            newDirection = cord.move(input);
             input.setDirection(newDirection);
+            input.clearUnderness();
             renderer.clear();
             cord.draw();
         },

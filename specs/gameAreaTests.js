@@ -32,18 +32,18 @@ describe("Game Area: calculating initial dimensions", function () {
         expect(area.height).toBeLessThan(area.width);
        });
     
-    it("should be less than or equal to 30 squares high", function () {
+    it("should be less than or equal to 20 squares high", function () {
         var computedHeight = function (height, width) {
             canvas = { height: height, width: width };
             return gameArea(canvas).height;
         };
 
-        expect(computedHeight(100,100)).toBeLessThan(31);
-        expect(computedHeight(500,100)).toBeLessThan(31);
-        expect(computedHeight(100,700)).toBeLessThan(31);
+        expect(computedHeight(100, 100)).toBeLessThan(31);
+        expect(computedHeight(500, 100)).toBeLessThan(31);
+        expect(computedHeight(100, 700)).toBeLessThan(31);
        });
     
-    it("should be less than or equal to 30 squares wide", function () {
+    it("should be less than or equal to 20 squares wide", function () {
         var computedWidth = function (height, width) {
             canvas = { height: height, width: width };
             return gameArea(canvas).width;
@@ -94,10 +94,11 @@ describe("Game Area: calculating initial dimensions",function () {
     });
     
     it("should generate a random point", function() {
-        var point;
+        var point, offset;
         area = gameArea({ height: 100, width: 100 });
         point = area.randomPoint();
-        expect(point[0] && point[0] <= area.width).toBeTruthy();
-        expect(point[1] && point[1] <= area.height).toBeTruthy();
+        offset = Math.floor(area.gridSquareSize() / 5.0);
+        expect(point[0] <= area.width + offset).toBeTruthy();
+        expect(point[1] <= area.height + offset).toBeTruthy();
     });
 });

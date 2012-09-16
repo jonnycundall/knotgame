@@ -2,14 +2,12 @@
 // using the drawingContext
 initializeRenderer = function (canvas, gameArea) {
     "use strict";
-    var renderer = {}, previousPoint, nextPoint, thisPoint, i, context, curveStart, curveEnd;
+    var renderer = {}, previousPoint, nextPoint, thisPoint, i, context, curveStart, curveEnd, drawSimpleCurve;
     context = canvas.getContext('2d');
-    renderer.drawCurve = function (pointArray, startCondition, endCondition) {
-        if (pointArray.length < 3) {
-            return;
-        }
-        context.lineWidth = 2;
-        context.strokeStyle = '#000';
+
+    drawSimpleCurve = function (pointArray, lineWidth, strokeStyle, startCondition, endCondition) {
+        context.lineWidth = lineWidth;
+        context.strokeStyle = strokeStyle;
         context.beginPath();
         previousPoint = gameArea.point(pointArray[0][0], pointArray[0][1]);
         //context.moveTo(previousPoint[0], previousPoint[1]);
@@ -24,9 +22,19 @@ initializeRenderer = function (canvas, gameArea) {
             previousPoint = thisPoint;
         }
         context.stroke();
-        
     };
     
+    renderer.drawCurve = function (pointArray, startCondition, endCondition) {
+        var outerBandWidth, innerBandWidth;
+        outerBandWidth = Math.floor(gameArea.gridSquareSize() * 0.8);
+        innerBandWidth = Math.floor(gameArea.gridSquareSize() * 0.6);
+        if (pointArray.length < 3) {
+            return;
+        }
+       
+        drawSimpleCurve(pointArray, outerBandWidth, '#000', startCondition, endCondition);
+        drawSimpleCurve(pointArray, innerBandWidth, '#FFF', startCondition, endCondition);
+    };
     renderer.clear = function () {
         context.beginPath();
         context.rect(0, 0, 600, 600);

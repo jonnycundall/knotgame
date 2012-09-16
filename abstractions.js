@@ -8,16 +8,17 @@ var gameArea, initializeRenderer, snake, userInput, directionGuider,
 //and logical coordinates in the game 
 gameArea = function (canvas) {
     "use strict";
-    var gridSquareSize, area, height, width, randomPosition;
+    var gridSquareSize, area, height, width, randomPosition, offset;
+    
     // game would be too small to draw on canvas
     if (canvas.height < 50 || canvas.width < 50) {
         return;
     }
     
-    gridSquareSize = Math.max(Math.floor(canvas.height / 30), Math.floor(canvas.width / 30));
-    
-    height = Math.min(Math.floor(canvas.height / gridSquareSize), 30);
-    width = Math.min(Math.floor(canvas.width / gridSquareSize), 30);
+    gridSquareSize = Math.max(Math.floor(canvas.height / 21), Math.floor(canvas.width / 21));
+    offset = Math.floor(gridSquareSize / 2.0);
+    height = Math.min(Math.floor(canvas.height / gridSquareSize), 20);
+    width = Math.min(Math.floor(canvas.width / gridSquareSize), 20);
     
     randomPosition  = function (dimension) {
         return Math.floor(Math.random() * dimension);
@@ -28,7 +29,7 @@ gameArea = function (canvas) {
         width: width,
         
         point: function (logicalPointX, logicalPointY) {
-            return [logicalPointX * gridSquareSize, logicalPointY * gridSquareSize];
+            return [logicalPointX * gridSquareSize + offset, logicalPointY * gridSquareSize + offset];
         },
         randomPoint: function () {
             return [randomPosition(width), randomPosition(height)];
@@ -36,7 +37,11 @@ gameArea = function (canvas) {
         inBounds: function(point) {
             return (point[0] >= 0 && point[0] <= width
                 && point[1] >= 0 && point[1] <= height);
+        },
+        gridSquareSize: function () {
+            return gridSquareSize;
         }
+        
     };
     
     return area;
@@ -47,7 +52,7 @@ snake = function (renderer, gameArea) {
     var head, tail, obj, nextSquare, maxLength, guider;
     head = gameArea.randomPoint();
     tail = [];
-    maxLength = 20;
+    maxLength = 30;
     guider = directionGuider(gameArea);
     
     nextSquare = function (direction) {
@@ -62,8 +67,9 @@ snake = function (renderer, gameArea) {
     
     obj = {};
     
-    obj.move = function (direction) {
-        var nextPosition, lastPosition;
+    obj.move = function (input) {
+        var nextPosition, lastPosition, direction;
+        direction = input.direction();
         lastPosition = tail[0];
         
         direction = guider.correctDirection(direction, head, lastPosition);
@@ -87,7 +93,7 @@ snake = function (renderer, gameArea) {
 //gathers keypresses and stores user instructions implied
 userInput = function () {
     "use strict";
-    var obj, direction, keyCode;
+    var obj, direction, keyCode, goUnder;
     
     obj = {};
     obj.keyHandler = function (e) {
@@ -106,6 +112,9 @@ userInput = function () {
         case 40:
             direction = DOWN;
             break;
+        case 32: 
+            goUnder = true;
+            break;
         }
     };
     
@@ -113,6 +122,14 @@ userInput = function () {
         return direction;
     };
     
+    obj.goUnder = function () {
+        return goUnder;
+    };
+    
+    obj.clearUnderness = function () {
+        goUnder = false;    
+    };
+                
     obj.setDirection = function (dir) {
         direction = dir;
     };
