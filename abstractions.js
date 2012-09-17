@@ -1,4 +1,4 @@
-var gameArea, initializeRenderer, snake, userInput, directionGuider,
+var gameArea, initializeRenderer, snake, userInput, directionGuider, snakePiece,
     NONE = [0, 0],
     LEFT = [-1, 0],
     DOWN = [0, 1],
@@ -34,7 +34,7 @@ gameArea = function (canvas) {
         randomPoint: function () {
             return [randomPosition(width), randomPosition(height)];
         },
-        inBounds: function(point) {
+        inBounds: function (point) {
             return (point[0] >= 0 && point[0] <= width
                 && point[1] >= 0 && point[1] <= height);
         },
@@ -50,7 +50,7 @@ gameArea = function (canvas) {
 snake = function (renderer, gameArea) {
     "use strict";
     var head, tail, obj, nextSquare, maxLength, guider;
-    head = gameArea.randomPoint();
+    head = snakePiece(gameArea.randomPoint(), false);
     tail = [];
     maxLength = 30;
     guider = directionGuider(gameArea);
@@ -60,23 +60,23 @@ snake = function (renderer, gameArea) {
             return;
         }
         var newX, newY;
-        newX = head[0] + direction[0];
-        newY = head[1] + direction[1];
+        newX = head.X + direction[0];
+        newY = head.Y + direction[1];
         return [newX, newY];
     };
     
     obj = {};
     
     obj.move = function (input) {
-        var nextPosition, lastPosition, direction;
+        var nextPosition, lastPosition, direction, exp;
         direction = input.direction();
-        lastPosition = tail[0];
-        
-        direction = guider.correctDirection(direction, head, lastPosition);
+        if (tail[0]) {
+            direction = guider.correctDirection(direction, head.point, tail[0].point);
+        }
         nextPosition = nextSquare(direction);
         if (nextPosition) {
             tail.splice(0, 0, head);
-            head = nextPosition;
+            head = snakePiece(nextPosition, input.goUnder());
         }
         tail = tail.slice(0, maxLength);
         
@@ -112,7 +112,7 @@ userInput = function () {
         case 40:
             direction = DOWN;
             break;
-        case 32: 
+        case 32:
             goUnder = true;
             break;
         }
@@ -127,7 +127,7 @@ userInput = function () {
     };
     
     obj.clearUnderness = function () {
-        goUnder = false;    
+        goUnder = false;
     };
                 
     obj.setDirection = function (dir) {
@@ -155,7 +155,7 @@ Geometry =  {
     
     addVectors: function (vector1, vector2) {
         if (vector1 && vector2) {
-        return [vector1[0] + vector2[0], vector1[1] + vector2[1]];
+            return [vector1[0] + vector2[0], vector1[1] + vector2[1]];
         }
     },
     
@@ -186,6 +186,7 @@ directionGuider = function (area) {
             proposedDirection = Geometry.vectorReverse(reversed);
         }
 
+        //take the first legal move you can find, ie not reversed, not out of bounds
         if (currentPosition && proposedDirection) {
             for (i = 0; i < 4; i++) {
                 nextMove = Geometry.addVectors(proposedDirection, currentPosition);
@@ -202,4 +203,14 @@ directionGuider = function (area) {
         return proposedDirection;
     };
     return guider;
+};
+        
+snakePiece = function (point, goUnder) {
+    'use strict';
+    var obj = {};
+    obj.X = point[0];
+    obj.Y = point[1];
+    obj.point = point;
+    obj.goUnder = goUnder;
+    return obj;
 };

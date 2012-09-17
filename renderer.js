@@ -1,6 +1,6 @@
 // given rendering commands by the game object, this draws them on the canvas 
 // using the drawingContext
-initializeRenderer = function (canvas, gameArea) {
+var initializeRenderer = function (canvas, gameArea) {
     "use strict";
     var renderer = {}, previousPoint, nextPoint, thisPoint, i, context, curveStart, curveEnd, drawSimpleCurve;
     context = canvas.getContext('2d');
@@ -9,11 +9,11 @@ initializeRenderer = function (canvas, gameArea) {
         context.lineWidth = lineWidth;
         context.strokeStyle = strokeStyle;
         context.beginPath();
-        previousPoint = gameArea.point(pointArray[0][0], pointArray[0][1]);
+        previousPoint = gameArea.point(pointArray[0].X, pointArray[0].Y);
         //context.moveTo(previousPoint[0], previousPoint[1]);
         for (i = 1; i < pointArray.length - 1; (i++)) {
-            thisPoint = gameArea.point(pointArray[i][0], pointArray[i][1]);
-            nextPoint = gameArea.point(pointArray[i + 1][0], pointArray[i + 1][1]);
+            thisPoint = gameArea.point(pointArray[i].X, pointArray[i].Y);
+            nextPoint = gameArea.point(pointArray[i + 1].X, pointArray[i + 1].Y);
 
             curveStart = Geometry.midpoint(previousPoint, thisPoint);
             curveEnd = Geometry.midpoint(thisPoint, nextPoint);
