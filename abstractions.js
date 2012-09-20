@@ -41,7 +41,6 @@ gameArea = function (canvas) {
         gridSquareSize: function () {
             return gridSquareSize;
         }
-        
     };
     
     return area;
@@ -49,7 +48,7 @@ gameArea = function (canvas) {
     
 snake = function (renderer, gameArea) {
     "use strict";
-    var head, tail, obj, nextSquare, maxLength, guider;
+    var head, tail, obj, nextSquare, maxLength, guider, overlap;
     head = snakePiece(gameArea.randomPoint(), false);
     tail = [];
     maxLength = 30;
@@ -65,6 +64,15 @@ snake = function (renderer, gameArea) {
         return [newX, newY];
     };
     
+    overlap = function (aHead, aTail) {
+        var i;
+        for (i = 0; i < tail.length; i++) {
+            if (Geometry.pointEquals(aTail[i], aHead) === true) {
+                tail[i].goUnder = true;   
+            }
+        }
+    };
+    
     obj = {};
     
     obj.move = function (input) {
@@ -77,6 +85,7 @@ snake = function (renderer, gameArea) {
         if (nextPosition) {
             tail.splice(0, 0, head);
             head = snakePiece(nextPosition, input.goUnder());
+            overlap(head, tail);
         }
         tail = tail.slice(0, maxLength);
         
@@ -84,7 +93,15 @@ snake = function (renderer, gameArea) {
     };
     
     obj.draw = function () {
+        var i, firstPiece;
         renderer.drawCurve(tail);
+        
+        for (i = 2; i < tail.length; i++) {
+            if (tail[i].goUnder === true) {
+                firstPiece = i === 2 ? head : tail[i - 2];
+                renderer.drawCurve([firstPiece, tail[i - 1], tail[i]]);
+            }
+        }
     };
     
     return obj;
