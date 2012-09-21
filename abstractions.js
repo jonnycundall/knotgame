@@ -67,7 +67,7 @@ snake = function (renderer, gameArea) {
     overlap = function (aHead, aTail) {
         var i;
         for (i = 0; i < tail.length; i++) {
-            if (Geometry.pointEquals(aTail[i], aHead) === true) {
+            if (Geometry.pointEquals(aTail[i].point, aHead.point) === true) {
                 tail[i].goUnder = true;   
             }
         }
@@ -93,13 +93,18 @@ snake = function (renderer, gameArea) {
     };
     
     obj.draw = function () {
-        var i, firstPiece;
+        var i, j, firstPiece;
         renderer.drawCurve(tail);
         
-        for (i = 2; i < tail.length; i++) {
+        for (i = 0; i < tail.length; i++) {
             if (tail[i].goUnder === true) {
-                firstPiece = i === 2 ? head : tail[i - 2];
-                renderer.drawCurve([firstPiece, tail[i - 1], tail[i]]);
+                // find the ppiece that goes over it, if it exists
+                for (j = 1; j < tail.length; j++) {
+                    if (j !== i && Geometry.pointEquals(tail[j].point, tail[i].point)) {
+                        firstPiece = j === 2 ? head : tail[j - 1];
+                        renderer.drawCurve([firstPiece, tail[j], tail[j + 1]]);
+                    }
+                }
             }
         }
     };

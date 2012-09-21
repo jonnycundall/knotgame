@@ -36,6 +36,15 @@ var initializeRenderer = function (canvas, gameArea) {
         drawSimpleCurve(pointArray, innerBandWidth, '#FFF', startCondition, endCondition);
     };
     
+    renderer.drawRedCurve = function (pointArray, startCondition, endCondition) {
+        if (pointArray.length < 3) {
+            return;
+        }
+        
+        drawSimpleCurve(pointArray, outerBandWidth, '#F00', startCondition, endCondition);
+        drawSimpleCurve(pointArray, innerBandWidth, '#F00', startCondition, endCondition);
+    };
+    
     renderer.clear = function () {
         context.beginPath();
         context.rect(0, 0, 600, 600);
