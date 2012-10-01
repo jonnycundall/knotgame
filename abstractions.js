@@ -66,6 +66,9 @@ snake = function (renderer, gameArea) {
     
     overlap = function (aHead, aTail) {
         var i;
+        if (aHead.goUnder == true) {
+            return;
+        }
         for (i = 0; i < tail.length; i++) {
             if (Geometry.pointEquals(aTail[i].point, aHead.point) === true) {
                 tail[i].goUnder = true;   
@@ -93,6 +96,9 @@ snake = function (renderer, gameArea) {
     };
     
     obj.draw = function () {
+        if (!head) {
+            return;
+        }
         var i, j, firstPiece;
         renderer.drawCurve(tail);
         
@@ -107,6 +113,8 @@ snake = function (renderer, gameArea) {
                 }
             }
         }
+        
+        renderer.drawHead(head);
     };
     
     return obj;
