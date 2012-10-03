@@ -3,7 +3,7 @@
 var initializeRenderer = function (canvas, gameArea) {
     "use strict";
     var renderer = {}, previousPoint, nextPoint, thisPoint, i, context,
-        curveStart, curveEnd, drawSimpleCurve, drawSimpleCurve2, drawBoundedPiece, outerBandWidth, innerBandWidth;
+        curveStart, curveEnd, drawSimpleCurve, drawSimpleCurve2, drawSegment, drawBoundedPiece, outerBandWidth, innerBandWidth;
     context = canvas.getContext('2d');
     outerBandWidth = Math.floor(gameArea.gridSquareSize() * 0.8);
     innerBandWidth = Math.floor(gameArea.gridSquareSize() * 0.6);
@@ -27,6 +27,15 @@ var initializeRenderer = function (canvas, gameArea) {
         context.stroke();
     };
     
+    drawSegment = function (position, priorDirection, postDirection, colour) {
+        var start, mid, end, distanceToEdge;
+        distanceToEdge = gameArea.gridSquareSize() / 2;
+        mid = gameArea.point(position.X, position.Y);
+        start = [mid[0] - distanceToEdge * priorDirection[0], mid[1] - distanceToEdge * priorDirection[1]];
+        end = [mid[0] + distanceToEdge * postDirection[0], mid[1] + distanceToEdge * postDirection[1]];
+        drawBoundedPiece(start, mid, end, colour);
+    };
+    
     renderer.drawCurve = function (pointArray, startCondition, endCondition) {
         if (pointArray.length < 3) {
             return;
@@ -45,65 +54,17 @@ var initializeRenderer = function (canvas, gameArea) {
         context.stroke();
     };
     
-    drawBoundedPiece = function (start, mid, end) {
+    drawBoundedPiece = function (start, mid, end, colour) {
         drawSimpleCurve2(start, mid, end, outerBandWidth, '#000');
-        drawSimpleCurve2(start, mid, end, innerBandWidth, '#FFF');
+        drawSimpleCurve2(start, mid, end, innerBandWidth, colour);
     };
     
-    renderer.drawHead = function (head) {
-        var headTopLeft, size;
-        headTopLeft = gameArea.point(head.X, head.Y);
-        context.fillStyle = '#F00';
-        size = gameArea.gridSquareSize();
-        context.fillRect(headTopLeft[0] - size / 2, headTopLeft[1] - size / 2, size, size);
+    renderer.drawHead = function (position, priorDirection, postDirection) {
+        return drawSegment(position, priorDirection, postDirection, '#dfd');
     };
     
-    renderer.drawNS = function (position) {
-        var start, mid, end;
-        mid = gameArea.point(position.X, position.Y);
-        start = [mid[0], mid[1] - gameArea.gridSquareSize() / 2];
-        end = [mid[0], mid[1] + gameArea.gridSquareSize() / 2];
-        drawBoundedPiece(start, mid, end);
-    };
-    
-    renderer.drawNE = function (position) {
-        var start, mid, end;
-        mid = gameArea.point(position.X, position.Y);
-        start = [mid[0], mid[1] - gameArea.gridSquareSize() / 2];
-        end = [mid[0] + gameArea.gridSquareSize() / 2, mid[1]];
-        drawBoundedPiece(start, mid, end);
-    };
-    
-    renderer.drawSE = function (position) {
-        var start, mid, end;
-        mid = gameArea.point(position.X, position.Y);
-        start = [mid[0], mid[1] + gameArea.gridSquareSize() / 2];
-        end = [mid[0] + gameArea.gridSquareSize() / 2, mid[1]];
-        drawBoundedPiece(start, mid, end);
-    };
-    
-    renderer.drawSW = function (position) {
-        var start, mid, end;
-        mid = gameArea.point(position.X, position.Y);
-        start = [mid[0], mid[1] + gameArea.gridSquareSize() / 2];
-        end = [mid[0] - gameArea.gridSquareSize() / 2, mid[1]];
-        drawBoundedPiece(start, mid, end);
-    };
-    
-    renderer.drawNW = function (position) {
-        var start, mid, end;
-        mid = gameArea.point(position.X, position.Y);
-        start = [mid[0], mid[1] - gameArea.gridSquareSize() / 2];
-        end = [mid[0] - gameArea.gridSquareSize() / 2, mid[1]];
-        drawBoundedPiece(start, mid, end);
-    };
-    
-    renderer.drawEW = function (position) {
-        var start, mid, end;
-        mid = gameArea.point(position.X, position.Y);
-        start = [mid[0] - gameArea.gridSquareSize() / 2, mid[1]];
-        end = [mid[0] + gameArea.gridSquareSize() / 2, mid[1]];
-        drawBoundedPiece(start, mid, end);
+    renderer.drawBodySegment = function (position, priorDirection, postDirection) {
+        return drawSegment(position, priorDirection, postDirection, '#fff');
     };
     
     renderer.clear = function () {

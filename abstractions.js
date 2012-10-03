@@ -48,7 +48,7 @@ gameArea = function (canvas) {
     
 snake = function (renderer, gameArea) {
     "use strict";
-    var head, tail, obj, nextSquare, maxLength, guider, overlap;
+    var head, tail, obj, nextSquare, maxLength, guider, overlap, priorDirection;
     head = snakePiece(gameArea.randomPoint(), false);
     tail = [];
     maxLength = 30;
@@ -66,12 +66,12 @@ snake = function (renderer, gameArea) {
     
     overlap = function (aHead, aTail) {
         var i;
-        if (aHead.goUnder == true) {
+        if (aHead.goUnder === true) {
             return;
         }
         for (i = 0; i < tail.length; i++) {
             if (Geometry.pointEquals(aTail[i].point, aHead.point) === true) {
-                tail[i].goUnder = true;   
+                tail[i].goUnder = true;
             }
         }
     };
@@ -87,11 +87,11 @@ snake = function (renderer, gameArea) {
         nextPosition = nextSquare(direction);
         if (nextPosition) {
             tail.splice(0, 0, head);
-            head = snakePiece(nextPosition, input.goUnder());
+            head = snakePiece(nextPosition, input.goUnder(), direction, priorDirection);
             overlap(head, tail);
         }
         tail = tail.slice(0, maxLength);
-        
+        priorDirection = direction;
         return direction;
     };
     
@@ -104,7 +104,7 @@ snake = function (renderer, gameArea) {
         
         for (i = 0; i < tail.length; i++) {
             if (tail[i].goUnder === true) {
-                // find the ppiece that goes over it, if it exists
+                // find the piece that goes over it, if it exists
                 for (j = 1; j < tail.length; j++) {
                     if (j !== i && Geometry.pointEquals(tail[j].point, tail[i].point)) {
                         firstPiece = j === 2 ? head : tail[j - 1];
@@ -114,7 +114,7 @@ snake = function (renderer, gameArea) {
             }
         }
         
-        renderer.drawHead(head);
+        renderer.drawHead(head, [0, 1], [1, 0]);
     };
     
     return obj;
@@ -235,11 +235,13 @@ directionGuider = function (area) {
     return guider;
 };
         
-snakePiece = function (point, goUnder) {
+snakePiece = function (point, goUnder, priorDirection, postDirection) {
     'use strict';
     var obj = {};
     obj.X = point[0];
     obj.Y = point[1];
+    obj.priorDirection = priorDirection;
+    obj.postDirection = postDirection;
     obj.point = point;
     obj.goUnder = goUnder;
     return obj;
