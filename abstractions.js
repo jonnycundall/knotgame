@@ -48,11 +48,12 @@ gameArea = function (canvas) {
     
 snake = function (renderer, gameArea) {
     "use strict";
-    var head, tail, obj, nextSquare, maxLength, guider, overlap, priorDirection;
+    var head, tail, obj, nextSquare, maxLength, guider, overlap, priorDirection, index, compareForRenderOrder;
     head = snakePiece(gameArea.randomPoint(), false);
     tail = [];
     maxLength = 30;
     guider = directionGuider(gameArea);
+    index = 0;
     
     nextSquare = function (direction) {
         if (!direction) {
@@ -76,6 +77,16 @@ snake = function (renderer, gameArea) {
         }
     };
     
+    compareForRenderOrder = function (a, b) {
+        if (a.goUnder && !b.goUnder) {
+            return -1;
+        }
+        if (!a.goUnder && b.goUnder) {
+            return 1;
+        }
+        return a.index < b.index ? -1 : 1;
+    };
+    
     obj = {};
     
     obj.move = function (input) {
@@ -86,9 +97,14 @@ snake = function (renderer, gameArea) {
         }
         nextPosition = nextSquare(direction);
         if (nextPosition) {
-            tail.splice(0, 0, head);
-            head = snakePiece(nextPosition, input.goUnder(), direction, priorDirection);
+            index++;
+            head = snakePiece(nextPosition, input.goUnder(), direction, direction, index);
+            
+            if (tail[0]) {
+                tail[0].postDirection = direction;
+            }
             overlap(head, tail);
+            tail.splice(0, 0, head);
         }
         tail = tail.slice(0, maxLength);
         priorDirection = direction;
@@ -99,22 +115,12 @@ snake = function (renderer, gameArea) {
         if (!head) {
             return;
         }
-        var i, j, firstPiece;
-        renderer.drawCurve(tail);
-        
-        for (i = 0; i < tail.length; i++) {
-            if (tail[i].goUnder === true) {
-                // find the piece that goes over it, if it exists
-                for (j = 1; j < tail.length; j++) {
-                    if (j !== i && Geometry.pointEquals(tail[j].point, tail[i].point)) {
-                        firstPiece = j === 2 ? head : tail[j - 1];
-                        renderer.drawCurve([firstPiece, tail[j], tail[j + 1]]);
-                    }
-                }
-            }
+        var i, drawOrder;
+
+        drawOrder = Array.prototype.slice.call(tail).sort(compareForRenderOrder);
+        for (i = 0; i < drawOrder.length; i++) {
+            renderer.drawBodySegment(drawOrder[i]);
         }
-        
-        renderer.drawHead(head, [0, 1], [1, 0]);
     };
     
     return obj;
@@ -235,7 +241,7 @@ directionGuider = function (area) {
     return guider;
 };
         
-snakePiece = function (point, goUnder, priorDirection, postDirection) {
+snakePiece = function (point, goUnder, priorDirection, postDirection, index) {
     'use strict';
     var obj = {};
     obj.X = point[0];
@@ -243,6 +249,7 @@ snakePiece = function (point, goUnder, priorDirection, postDirection) {
     obj.priorDirection = priorDirection;
     obj.postDirection = postDirection;
     obj.point = point;
+    obj.index = index;
     obj.goUnder = goUnder;
     return obj;
 };

@@ -63,8 +63,8 @@ var initializeRenderer = function (canvas, gameArea) {
         return drawSegment(position, priorDirection, postDirection, '#dfd');
     };
     
-    renderer.drawBodySegment = function (position, priorDirection, postDirection) {
-        return drawSegment(position, priorDirection, postDirection, '#fff');
+    renderer.drawBodySegment = function (bodyPiece) {
+        return drawSegment(bodyPiece, bodyPiece.priorDirection, (bodyPiece.postDirection || bodyPiece.priorDirection), '#fff');
     };
     
     renderer.clear = function () {
