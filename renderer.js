@@ -3,29 +3,10 @@
 var initializeRenderer = function (canvas, gameArea) {
     "use strict";
     var renderer = {}, previousPoint, nextPoint, thisPoint, i, context,
-        curveStart, curveEnd, drawSimpleCurve, drawSimpleCurve2, drawSegment, drawBoundedPiece, outerBandWidth, innerBandWidth;
+        curveStart, curveEnd, drawSimpleCurve, drawSegment, drawBoundedPiece, outerBandWidth, innerBandWidth;
     context = canvas.getContext('2d');
     outerBandWidth = Math.floor(gameArea.gridSquareSize() * 0.8);
     innerBandWidth = Math.floor(gameArea.gridSquareSize() * 0.6);
-    
-    drawSimpleCurve = function (pointArray, lineWidth, strokeStyle, startCondition, endCondition) {
-        context.lineWidth = lineWidth;
-        context.strokeStyle = strokeStyle;
-        context.beginPath();
-        previousPoint = gameArea.point(pointArray[0].X, pointArray[0].Y);
-        
-        for (i = 0; i < pointArray.length - 1; i++) {
-            thisPoint = gameArea.point(pointArray[i].X, pointArray[i].Y);
-            nextPoint = gameArea.point(pointArray[i + 1].X, pointArray[i + 1].Y);
-            curveStart = Geometry.midpoint(previousPoint, thisPoint);
-            curveEnd = Geometry.midpoint(thisPoint, nextPoint);
-            context.moveTo(curveStart[0], curveStart[1]);
-            context.quadraticCurveTo(thisPoint[0], thisPoint[1], curveEnd[0], curveEnd[1]);
-            previousPoint = thisPoint;
-        }
-        
-        context.stroke();
-    };
     
     drawSegment = function (position, priorDirection, postDirection, colour) {
         var start, mid, end, distanceToEdge;
@@ -45,7 +26,7 @@ var initializeRenderer = function (canvas, gameArea) {
         drawSimpleCurve(pointArray, innerBandWidth, '#FFF', startCondition, endCondition);
     };
     
-    drawSimpleCurve2 = function (start, mid, end, lineWidth, strokeStyle) {
+    drawSimpleCurve = function (start, mid, end, lineWidth, strokeStyle) {
         context.lineWidth = lineWidth;
         context.strokeStyle = strokeStyle;
         context.beginPath();
@@ -55,8 +36,8 @@ var initializeRenderer = function (canvas, gameArea) {
     };
     
     drawBoundedPiece = function (start, mid, end, colour) {
-        drawSimpleCurve2(start, mid, end, outerBandWidth, '#000');
-        drawSimpleCurve2(start, mid, end, innerBandWidth, colour);
+        drawSimpleCurve(start, mid, end, outerBandWidth, '#000');
+        drawSimpleCurve(start, mid, end, innerBandWidth, colour);
     };
     
     renderer.drawHead = function (position, priorDirection, postDirection) {

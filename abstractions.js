@@ -48,7 +48,8 @@ gameArea = function (canvas) {
     
 snake = function (renderer, gameArea) {
     "use strict";
-    var head, tail, obj, nextSquare, maxLength, guider, overlap, priorDirection, index, compareForRenderOrder;
+    var head, tail, tailTip, obj, nextSquare, maxLength, guider, 
+        overlap, priorDirection, index, compareForRenderOrder, isClosed;
     head = snakePiece(gameArea.randomPoint(), false);
     tail = [];
     maxLength = 30;
@@ -77,6 +78,11 @@ snake = function (renderer, gameArea) {
         }
     };
     
+    isClosed = function (body) {
+        return body && body.length > 3 && 
+            Geometry.pointEquals(body[0].point, body[body.length - 1].point);
+    };
+    
     compareForRenderOrder = function (a, b) {
         if (a.goUnder && !b.goUnder) {
             return -1;
@@ -92,8 +98,8 @@ snake = function (renderer, gameArea) {
     obj.move = function (input) {
         var nextPosition, lastPosition, direction, exp;
         direction = input.direction();
-        if (tail[0]) {
-            direction = guider.correctDirection(direction, head.point, tail[0].point);
+        if (tail[1]) {
+            direction = guider.correctDirection(direction, head.point, tail[1].point);
         }
         nextPosition = nextSquare(direction);
         if (nextPosition) {
@@ -106,7 +112,14 @@ snake = function (renderer, gameArea) {
             overlap(head, tail);
             tail.splice(0, 0, head);
         }
-        tail = tail.slice(0, maxLength);
+        
+        if (tail.length >= maxLength) {
+            tail = [head];
+        }
+        
+        if (isClosed(tail)) {
+            alert('closed'); 
+        }
         priorDirection = direction;
         return direction;
     };
