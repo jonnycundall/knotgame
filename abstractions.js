@@ -1,4 +1,4 @@
-var gameArea, initializeRenderer, snake, userInput, directionGuider, snakePiece,
+var gameArea, initializeRenderer, snake, userInput, directionGuider, snakePiece, stateMachine,
     NONE = [0, 0],
     LEFT = [-1, 0],
     DOWN = [0, 1],
@@ -80,7 +80,8 @@ snake = function (renderer, gameArea) {
     
     isClosed = function (body) {
         return body && body.length > 3 && 
-            Geometry.pointEquals(body[0].point, body[body.length - 1].point);
+            Geometry.pointEquals(body[0].point, body[body.length - 1].point)
+            && Geometry.pointEquals(body[0].postDirection, body[body.length - 1].priorDirection);
     };
     
     compareForRenderOrder = function (a, b) {
@@ -265,4 +266,15 @@ snakePiece = function (point, goUnder, priorDirection, postDirection, index) {
     obj.index = index;
     obj.goUnder = goUnder;
     return obj;
+};
+        
+stateMachine = function () {
+    'use strict';
+    var levelNumber, mode, obj; 
+    mode = 'go';
+    obj = {};
+    obj.levelNumber = function () {return levelNumber; };
+    obj.levelUp = function () {levelNumber = levelNumber + 1; };
+    obj.freeze = function () {mode = 'freeze'; };
+    obj.start = function () {mode = 'go'; };
 };
