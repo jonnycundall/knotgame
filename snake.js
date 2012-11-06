@@ -19,15 +19,36 @@
         drawingContext = drawingCanvas.getContext('2d');
     }
     
+    gameInterface = function (snake) {
+        var interface = {};
+        interface.move = function (input) {
+            snake.move(input);
+            if (snake.dead === true) {
+                return STATE_DEAD;
+            }
+            return STATE_ALIVE;
+        }
+            
+        interface.start = function (input) {
+            snake.reset();
+            this.move(input)
+        }
+        return interface;
+    }
+    
     game = function () {
-        var newDirection;
+        var newDirection, action, interface;
         area = gameArea(drawingCanvas);
         renderer = initializeRenderer(drawingCanvas, area);
         cord = snake(renderer, area);
+        interface = gameInterface(cord);
+        state = stateMachine(interface);
         intervalId = setInterval(function () {
+            state.action(input);
             newDirection = cord.move(input);
             input.setDirection(newDirection);
             input.clearUnderness();
+            
             renderer.clear();
             cord.draw();
         },

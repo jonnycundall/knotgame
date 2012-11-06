@@ -3,7 +3,12 @@ var gameArea, initializeRenderer, snake, userInput, directionGuider, snakePiece,
     LEFT = [-1, 0],
     DOWN = [0, 1],
     RIGHT = [1, 0],
-    UP = [0, -1];
+    UP = [0, -1],
+    STATE_DEAD = 0,
+    STATE_ALIVE = 1,
+    STATE_CHECK_SUCCESS = 2,
+    STATE_SUCCESS = 3,
+    STATE_FAILURE = 4;
 //the gameArea object is responsible for mapping between physical coordinates on the canvas 
 //and logical coordinates in the game 
 gameArea = function (canvas) {
@@ -79,7 +84,7 @@ snake = function (renderer, gameArea) {
     };
     
     isClosed = function (body) {
-        return body && body.length > 3 && 
+        return body && body.length > 3 &&
             Geometry.pointEquals(body[0].point, body[body.length - 1].point)
             && Geometry.pointEquals(body[0].postDirection, body[body.length - 1].priorDirection);
     };
@@ -268,13 +273,27 @@ snakePiece = function (point, goUnder, priorDirection, postDirection, index) {
     return obj;
 };
         
-stateMachine = function () {
+stateMachine = function (interface) {
     'use strict';
-    var levelNumber, mode, obj; 
+    var levelNumber, mode, obj, action; 
     mode = 'go';
     obj = {};
     obj.levelNumber = function () {return levelNumber; };
     obj.levelUp = function () {levelNumber = levelNumber + 1; };
     obj.freeze = function () {mode = 'freeze'; };
     obj.start = function () {mode = 'go'; };
+    obj.do = function (input) {
+        var result = action(input);
+        switch (result) {
+            case STATE_ALIVE:
+                action = interface.move;
+                break;
+            case STATE_DEAD:
+                action = interface.start;
+                break;
+            default:
+                console.log('unexpected state');
+        }
+    }
 };
+        
