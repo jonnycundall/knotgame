@@ -142,6 +142,9 @@ snake = function (renderer, gameArea) {
         }
     };
     
+    obj.reset = function () { //do nothing for now
+    };
+    
     return obj;
 };
 
@@ -273,10 +276,11 @@ snakePiece = function (point, goUnder, priorDirection, postDirection, index) {
     return obj;
 };
         
-stateMachine = function (interface) {
+stateMachine = function (gameInterface) {
     'use strict';
     var levelNumber, mode, obj, action; 
     mode = 'go';
+    action = gameInterface.start;
     obj = {};
     obj.levelNumber = function () {return levelNumber; };
     obj.levelUp = function () {levelNumber = levelNumber + 1; };
@@ -286,14 +290,15 @@ stateMachine = function (interface) {
         var result = action(input);
         switch (result) {
             case STATE_ALIVE:
-                action = interface.move;
+                action = gameInterface.move;
                 break;
             case STATE_DEAD:
-                action = interface.start;
+                action = gameInterface.start;
                 break;
             default:
                 console.log('unexpected state');
         }
     }
+    return obj;
 };
         

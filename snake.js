@@ -1,7 +1,7 @@
 (function () {
     "use strict";
     var showPlayAgain, playAgain, drawingCanvas, drawingContext, game, currentGame, doc,
-        cord, area, input, intervalId, renderer;
+        cord, area, input, intervalId, renderer, gameInterface;
     
     doc = document;
     showPlayAgain = function () {
@@ -20,35 +20,33 @@
     }
     
     gameInterface = function (snake) {
-        var interface = {};
-        interface.move = function (input) {
-            snake.move(input);
+        var face = {}, newDirection;
+        face.move = function (input) {
+            newDirection = snake.move(input);
+            input.setDirection(newDirection);
             if (snake.dead === true) {
                 return STATE_DEAD;
             }
             return STATE_ALIVE;
         }
             
-        interface.start = function (input) {
+        face.start = function (input) {
             snake.reset();
-            this.move(input)
+            return STATE_ALIVE;
         }
-        return interface;
+        return face;
     }
     
     game = function () {
-        var newDirection, action, interface;
+        var newDirection, action, face, state;
         area = gameArea(drawingCanvas);
         renderer = initializeRenderer(drawingCanvas, area);
         cord = snake(renderer, area);
-        interface = gameInterface(cord);
-        state = stateMachine(interface);
+        face = gameInterface(cord);
+        state = stateMachine(face);
         intervalId = setInterval(function () {
-            state.action(input);
-            newDirection = cord.move(input);
-            input.setDirection(newDirection);
+            state.do(input);
             input.clearUnderness();
-            
             renderer.clear();
             cord.draw();
         },
