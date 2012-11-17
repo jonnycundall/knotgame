@@ -355,10 +355,12 @@ stateMachine = function (gameInterface) {
 };
         
 knotComparer = function (snake1, snake2) {
-    var differenceVector = Geometry.difference(snake1[0], snake2[0]);
+    var differenceVector = Geometry.difference(snake1[0].point, snake2[0].point);
 
     for(var i = 0; i < snake1.length; i++) {
-        if(!Geometry.pointEquals(snake2[i], Geometry.addVectors(snake1[i], differenceVector)))
+        if(!Geometry.pointEquals(snake2[i].point, Geometry.addVectors(snake1[i].point, differenceVector)))
+            return false;
+        if(snake1[i].goUnder != snake2[i].goUnder)
             return false;
     }
     return true;
