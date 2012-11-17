@@ -1,4 +1,5 @@
-var gameArea, initializeRenderer, snake, userInput, directionGuider, snakePiece, stateMachine,
+var gameArea, initializeRenderer, snake, userInput, directionGuider, 
+    snakePiece, stateMachine, gameInterface, snakeComparer
     NONE = [0, 0],
     LEFT = [-1, 0],
     DOWN = [0, 1],
@@ -9,6 +10,32 @@ var gameArea, initializeRenderer, snake, userInput, directionGuider, snakePiece,
     STATE_CHECK_SUCCESS = 2,
     STATE_SUCCESS = 3,
     STATE_FAILURE = 4;
+
+gameInterface = function (snake) {
+        var face = {}, newDirection;
+        face.move = function (input) {
+            newDirection = snake.move(input);
+            input.setDirection(newDirection);
+            if (snake.dead === true) {
+                return STATE_DEAD;
+            }
+            if (snake.isClosed === true) { 
+                return STATE_CHECK_SUCCESS;
+            }
+            return STATE_ALIVE;
+        }
+            
+        face.start = function (input) {
+            snake.reset();
+            return STATE_ALIVE;
+        }
+            
+        face.checkSuccess = function (input) {
+            //rearranged = original.slice(2).concat(original.slice(0,2)) 
+        }
+        return face;
+    }
+
 //the gameArea object is responsible for mapping between physical coordinates on the canvas 
 //and logical coordinates in the game 
 gameArea = function (canvas) {
@@ -123,9 +150,6 @@ snake = function (renderer, gameArea) {
             tail = [head];
         }
         
-        if (isClosed(tail)) {
-            alert('closed'); 
-        }
         priorDirection = direction;
         return direction;
     };
@@ -142,8 +166,12 @@ snake = function (renderer, gameArea) {
         }
     };
     
+    obj.isClosed = function () { return isCLosed; }
+    
     obj.reset = function () { //do nothing for now
     };
+    
+    obj.bottomLeftest = function () { return head };
     
     return obj;
 };
@@ -226,7 +254,28 @@ Geometry =  {
         if (vector) {
             return [vector[0] * -1, vector[1] * -1];
         }
-    }
+    },
+    
+    difference: function (point1, point2) {
+        return [point2[0] - point1[0], point2[1] - point1[1]];
+    },
+        
+    topleftest: function (arrayOfPoints) {
+        var sortfunction = function (a, b) {
+            if(a[0] === b[0] && a[1] === b[1])
+                return 0;
+            if(a[0] + a[1] < b[0] + b[1]) 
+                {return -1}
+            if(a[0] + a[1] === b[0] + b[1])
+            {
+                if(a[0] < b[0])
+                    return -1;
+                return 1;
+            }
+            return 1;
+        };
+        return arrayOfPoints.sort(sortfunction)[0]; 
+    },
 };
     
 directionGuider = function (area) {
@@ -295,6 +344,9 @@ stateMachine = function (gameInterface) {
             case STATE_DEAD:
                 action = gameInterface.start;
                 break;
+            case STATE_CHECK_SUCCESS:
+                action = gameInterface.checkSuccess;
+                break;
             default:
                 console.log('unexpected state');
         }
@@ -302,3 +354,12 @@ stateMachine = function (gameInterface) {
     return obj;
 };
         
+knotComparer = function (snake1, snake2) {
+    var differenceVector = Geometry.difference(snake1[0], snake2[0]);
+
+    for(var i = 0; i < snake1.length; i++) {
+        if(!Geometry.pointEquals(snake2[i], Geometry.addVectors(snake1[i], differenceVector)))
+            return false;
+    }
+    return true;
+};

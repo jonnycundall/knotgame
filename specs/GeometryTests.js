@@ -24,3 +24,12 @@ describe("Geometry: determining collinearity", function () {
         expect(Geometry.isCollinear(point1, point2, point3)).toBeTruthy();
     });
 });
+
+describe("Geometry: pciking the topleftest piece for snake comparison", function () {
+    it("should pick out the top leftest piece", function () {
+        expect(Geometry.topleftest([[0,0],[1,2]])).toEqual([0,0]);
+        expect(Geometry.topleftest([[3,4],[1,7]])).toEqual([3,4]);
+        expect(Geometry.topleftest([[3,4],[0,7]])).toEqual([0,7]);
+        expect(Geometry.topleftest([[3,4],[0,7], [2,2], [1,3], [9,9], [2,5]])).toEqual([1,3]);
+       }); 
+    });
