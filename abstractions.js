@@ -1,5 +1,5 @@
 var gameArea, initializeRenderer, snake, userInput, directionGuider, 
-    snakePiece, stateMachine, gameInterface, snakeComparer
+    snakePiece, stateMachine, gameInterface, snakeComparer,
     NONE = [0, 0],
     LEFT = [-1, 0],
     DOWN = [0, 1],
@@ -355,12 +355,48 @@ stateMachine = function (gameInterface) {
 };
         
 knotComparer = function (snake1, snake2) {
-    var differenceVector = Geometry.difference(snake1[0].point, snake2[0].point);
-
+    'use strict';
+    var differenceVector, denudedSnake1, denudedSnake2, denude, 
+        topleft1, topleft2, splicepoint1, splicepoint2, 
+        findSplicePoint, transformToMatch, transform1, transform2;
+    denude = function (snake) {
+        return snake.map(function(snakePiece) {
+            return snakePiece.point;
+        });
+    };
+    
+    findSplicePoint = function(point, arrayOfSnakePieces){
+        for(var i = 0; i < snake1.length; i++){
+            if(Geometry.pointEquals(point, arrayOfSnakePieces[i].point))
+               return i;
+        }
+        console.log('error - point not in snake in findSplicePoint');
+    };
+        
+    transformToMatch = function(point, translationVector, arrayOfsnakePieces) {
+        var pivotIndex = findSplicePoint(point, arrayOfsnakePieces);
+        return arrayOfsnakePieces.slice(pivotIndex)
+            .concat(arrayOfsnakePieces.slice(0,pivotIndex))
+            .map(function (piece) { return snakePiece(
+                Geometry.addVectors(piece.point, translationVector),
+                piece.goUnder,
+                piece.priorDirection,
+                piece.postDirection,
+                piece.index
+            );});
+    }
+    denudedSnake1 = denude(snake1);
+    denudedSnake2 = denude(snake2);
+    topleft1 = Geometry.topleftest(denudedSnake1);
+    topleft2 = Geometry.topleftest(denudedSnake2);
+    differenceVector = Geometry.difference(topleft1, topleft2); 
+    transform1 = transformToMatch(topleft1, differenceVector, snake1)
+    transform2 = transformToMatch(topleft2, [0,0], snake2)
+        
     for(var i = 0; i < snake1.length; i++) {
-        if(!Geometry.pointEquals(snake2[i].point, Geometry.addVectors(snake1[i].point, differenceVector)))
+        if(!Geometry.pointEquals(transform1[i].point, transform2[i].point))
             return false;
-        if(snake1[i].goUnder != snake2[i].goUnder)
+        if(transform1[i].goUnder != transform2[i].goUnder)
             return false;
     }
     return true;
