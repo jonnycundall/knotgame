@@ -1,5 +1,5 @@
-var gameArea, initializeRenderer, snake, userInput, directionGuider, 
-    snakePiece, stateMachine, gameInterface, snakeComparer,
+var gameArea, initializeRenderer, snake, userInput, directionGuider,
+    snakePiece, stateMachine, gameInterface, snakeComparer, levels, snakeDrawer,
     NONE = [0, 0],
     LEFT = [-1, 0],
     DOWN = [0, 1],
@@ -11,28 +11,53 @@ var gameArea, initializeRenderer, snake, userInput, directionGuider,
     STATE_SUCCESS = 3,
     STATE_FAILURE = 4;
 
-gameInterface = function (snake) {
-        var face = {}, newDirection;
+gameInterface = function (snake, levels) {
+        var face = {}, newDirection, currentLevel;
+        currentLevel = 1;
         face.move = function (input) {
             newDirection = snake.move(input);
             input.setDirection(newDirection);
             if (snake.dead === true) {
                 return STATE_DEAD;
             }
-            if (snake.isClosed === true) { 
+            if (snake.isClosed() === true) { 
                 return STATE_CHECK_SUCCESS;
             }
             return STATE_ALIVE;
-        }
+        };
             
         face.start = function (input) {
             snake.reset();
             return STATE_ALIVE;
-        }
+        };
             
         face.checkSuccess = function (input) {
-            //rearranged = original.slice(2).concat(original.slice(0,2)) 
-        }
+            var candidate, master, comparer;
+            candidate = snake.snake();
+            master = levels[currentLevel];
+            
+            if(knotComparer(master, candidate) === true)
+            {
+                currentLevel = currentLevel + 1;
+                return STATE_SUCCESS;
+            }
+            console.log(snake.testVersion());
+            console.log(master);
+            return STATE_FAILURE;
+        };
+    
+        face.showSuccess = function () {
+            console.log('success');
+            return STATE_ALIVE;
+        };
+    
+        face.showFailure = function () {
+            console.log('failure');
+            return STATE_ALIVE;
+        };
+    
+        face.currentLevel = function () { return currentLevel; }
+    
         return face;
     }
 
@@ -78,15 +103,16 @@ gameArea = function (canvas) {
     return area;
 };
     
-snake = function (renderer, gameArea) {
+snake = function (renderer, gameArea, startPoint) {
     "use strict";
     var head, tail, tailTip, obj, nextSquare, maxLength, guider, 
-        overlap, priorDirection, index, compareForRenderOrder, isClosed;
-    head = snakePiece(gameArea.randomPoint(), false);
+        overlap, priorDirection, index, compareForRenderOrder, isClosed, drawer;
+    head = snakePiece(startPoint, false);
     tail = [];
     maxLength = 30;
     guider = directionGuider(gameArea);
     index = 0;
+    drawer = snakeDrawer(renderer);
     
     nextSquare = function (direction) {
         if (!direction) {
@@ -146,6 +172,7 @@ snake = function (renderer, gameArea) {
             tail.splice(0, 0, head);
         }
         
+        // restart snkae when we run out of rope - otherwise it's hard to join up
         if (tail.length >= maxLength) {
             tail = [head];
         }
@@ -155,23 +182,38 @@ snake = function (renderer, gameArea) {
     };
     
     obj.draw = function () {
-        if (!head) {
-            return;
+        if(tail && this.isClosed(tail))
+        {
+            return drawer.drawClosed(tail);
         }
-        var i, drawOrder;
-
-        drawOrder = Array.prototype.slice.call(tail).sort(compareForRenderOrder);
-        for (i = 0; i < drawOrder.length; i++) {
-            renderer.drawBodySegment(drawOrder[i]);
-        }
+        return drawer.drawOpen(tail);
     };
     
-    obj.isClosed = function () { return isCLosed; }
+    obj.snake = function () {
+        return tail;
+    };
+    
+    obj.isClosed = function () { return isClosed([head].concat(tail)) }
     
     obj.reset = function () { //do nothing for now
     };
     
-    obj.bottomLeftest = function () { return head };
+    //output a string representation of itself so I can use it in a test
+    //snakePiece([1,0], false, UP, UP, 0),
+    obj.testVersion = function (){
+        "use strict";
+        var directionConvert = function (directionVector) {
+            if(directionVector[0] == 0 && directionVector[1] == -1) return 'UP';
+            if(directionVector[0] == 0 && directionVector[1] == 1) return 'DOWN';
+            if(directionVector[0] == -1 && directionVector[1] == 0) return 'LEFT';
+            if(directionVector[0] == 1 && directionVector[1] == 0) return 'RIGHT';
+        };
+        
+        return tail
+                .map(function(piece){
+                    return 'snakePiece([' + piece.X + ',' + piece.Y +'], '+ piece.goUnder + ', ' + directionConvert(piece.priorDirection) + ', ' + directionConvert(piece.postDirection) + '),';})
+                .join('');
+    };
     
     return obj;
 };
@@ -263,7 +305,7 @@ Geometry =  {
     topleftest: function (arrayOfPoints) {
         var sortfunction = function (a, b) {
             if(a[0] === b[0] && a[1] === b[1])
-                return 0;
+                {return 0; }
             if(a[0] + a[1] < b[0] + b[1]) 
                 {return -1}
             if(a[0] + a[1] === b[0] + b[1])
@@ -347,6 +389,12 @@ stateMachine = function (gameInterface) {
             case STATE_CHECK_SUCCESS:
                 action = gameInterface.checkSuccess;
                 break;
+            case STATE_SUCCESS:
+                action = gameInterface.showSuccess;
+                break;
+            case STATE_FAILURE:
+                action = gameInterface.showFailure;
+                break;
             default:
                 console.log('unexpected state');
         }
@@ -385,6 +433,12 @@ knotComparer = function (snake1, snake2) {
                 piece.index
             );});
     }
+    if(!snake1) return false;
+    if(!snake2) return false;
+    
+    //cut out the last piece as it is the overlap
+    snake2.splice(snake2.length -1);
+    
     denudedSnake1 = denude(snake1);
     denudedSnake2 = denude(snake2);
     topleft1 = Geometry.topleftest(denudedSnake1);
@@ -401,3 +455,81 @@ knotComparer = function (snake1, snake2) {
     }
     return true;
 };
+
+levels = function (renderer, gameArea) {
+    "use strict";
+    var drawer, levelList, returnObj, makeMovement;
+    makeMovement = function(actions) {
+        var cord, input, actions;
+        cord = snake(renderer, gameArea, [2,2]); 
+        input = userInput();
+        actions.map(function (a) { 
+            input.setDirection(a[0]);
+            if(a.length > 1)
+            {
+                input.goUnder();
+            }else{
+                input.clearUnderness();
+            }
+            cord.move(input);
+        });
+        
+        return cord.snake(); 
+    }
+    drawer = snakeDrawer(renderer);
+    levelList = 
+    {
+    //level 1: just the unknot
+        
+    1: makeMovement([[RIGHT],[RIGHT],[DOWN],[DOWN],[LEFT],[LEFT],[UP],[UP], [RIGHT]])   ,
+            
+    //level 2: the simplest trefoil
+    2: makeMovement([[RIGHT, true], [RIGHT], [DOWN], 
+                     [LEFT], [LEFT], [UP, true], [UP], [RIGHT], 
+                     [DOWN, true], [DOWN, true], [DOWN, true],[LEFT],[LEFT], [UP],[UP], [RIGHT]]),
+    };
+    
+    return {
+        1: levelList[1],
+        2: levelList[2],
+        drawGoal: function (levelNumber) {
+            drawer.drawClosed(levelList[levelNumber]);
+    }
+    };
+    
+}
+    
+snakeDrawer = function (renderer) {
+    var compareForRenderOrder = function (a, b) {
+        if (a.goUnder && !b.goUnder) {
+            return -1;
+        }
+        if (!a.goUnder && b.goUnder) {
+            return 1;
+        }
+        return a.index < b.index ? -1 : 1;
+    };
+    var obj = {};
+    
+    obj.drawOpen = function (tail) {
+        var i, drawOrder;
+
+        drawOrder = Array.prototype.slice.call(tail).sort(compareForRenderOrder);
+        for (i = 0; i < drawOrder.length; i++) {
+            renderer.drawBodySegment(drawOrder[i]);
+        }
+    };
+    
+    obj.drawClosed = function (tail) {
+        //for now, we're just missing the end off so we don't show an ugly overlap
+        var i, drawOrder;
+
+        drawOrder = Array.prototype.slice.call(tail).sort(compareForRenderOrder);
+        for (i = 0; i < drawOrder.length -1; i++) {
+            renderer.drawBodySegment(drawOrder[i]);
+        }
+    };
+    
+    return obj;
+}
+    

@@ -1,7 +1,7 @@
 (function () {
     "use strict";
     var showPlayAgain, playAgain, drawingCanvas, drawingContext, game, currentGame, doc,
-        cord, area, input, intervalId, renderer;
+        cord, area, input, intervalId, renderer, levelStore;
     
     doc = document;
     showPlayAgain = function () {
@@ -23,13 +23,15 @@
         var newDirection, action, face, state;
         area = gameArea(drawingCanvas);
         renderer = initializeRenderer(drawingCanvas, area);
-        cord = snake(renderer, area);
-        face = gameInterface(cord);
+        cord = snake(renderer, area, area.randomPoint());
+        levelStore = levels(renderer, area);
+        face = gameInterface(cord, levelStore);
         state = stateMachine(face);
         intervalId = setInterval(function () {
             state.do(input);
             input.clearUnderness();
             renderer.clear();
+            levelStore.drawGoal(face.currentLevel());
             cord.draw();
         },
             300);
