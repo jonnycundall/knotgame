@@ -92,8 +92,7 @@ gameArea = function (canvas) {
             return [randomPosition(width), randomPosition(height)];
         },
         inBounds: function (point) {
-            return (point[0] >= 0 && point[0] <= width
-                && point[1] >= 0 && point[1] <= height);
+            return (point[0] >= 0 && point[0] <= width && point[1] >= 0 && point[1] <= height);
         },
         gridSquareSize: function () {
             return gridSquareSize;
@@ -203,10 +202,10 @@ snake = function (renderer, gameArea, startPoint) {
     obj.testVersion = function (){
         "use strict";
         var directionConvert = function (directionVector) {
-            if(directionVector[0] == 0 && directionVector[1] == -1) return 'UP';
-            if(directionVector[0] == 0 && directionVector[1] == 1) return 'DOWN';
-            if(directionVector[0] == -1 && directionVector[1] == 0) return 'LEFT';
-            if(directionVector[0] == 1 && directionVector[1] == 0) return 'RIGHT';
+            if(directionVector[0] === 0 && directionVector[1] === -1) return 'UP';
+            if(directionVector[0] === 0 && directionVector[1] === 1) return 'DOWN';
+            if(directionVector[0] === -1 && directionVector[1] === 0) return 'LEFT';
+            if(directionVector[0] === 1 && directionVector[1] === 0) return 'RIGHT';
         };
         
         return tail
@@ -406,7 +405,7 @@ knotComparer = function (snake1, snake2) {
     'use strict';
     var differenceVector, denudedSnake1, denudedSnake2, denude, 
         topleft1, topleft2, splicepoint1, splicepoint2, 
-        findSplicePoint, transformToMatch, transform1, transform2;
+        findSplicePoint, transformToMatch, transform1, transform2, compareTransformedSnakes;
     denude = function (snake) {
         return snake.map(function(snakePiece) {
             return snakePiece.point;
@@ -432,7 +431,17 @@ knotComparer = function (snake1, snake2) {
                 piece.postDirection,
                 piece.index
             );});
-    }
+    };
+    
+    compareTransformedSnakes = function (transform1, transform2) {
+    	for(var i = 0; i < transform1.length; i++) {
+        if(!Geometry.pointEquals(transform1[i].point, transform2[i].point))
+            return false;
+        if(transform1[i].goUnder != transform2[i].goUnder)
+            return false;
+   		 }
+    return true;
+    };
     if(!snake1) return false;
     if(!snake2) return false;
     
@@ -446,14 +455,11 @@ knotComparer = function (snake1, snake2) {
     differenceVector = Geometry.difference(topleft1, topleft2); 
     transform1 = transformToMatch(topleft1, differenceVector, snake1)
     transform2 = transformToMatch(topleft2, [0,0], snake2)
-        
-    for(var i = 0; i < snake1.length; i++) {
-        if(!Geometry.pointEquals(transform1[i].point, transform2[i].point))
-            return false;
-        if(transform1[i].goUnder != transform2[i].goUnder)
-            return false;
-    }
-    return true;
+       
+    if(compareTransformedSnakes(transform1, transform2))
+        return true;
+    var reversed = transform2.reverse().slice(-1).concat(transform2.slice(0,-1));
+    return compareTransformedSnakes(transform1, reversed);
 };
 
 levels = function (renderer, gameArea) {

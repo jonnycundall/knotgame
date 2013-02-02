@@ -1,6 +1,6 @@
-describe('Comparer - picking a "root" piece for a snake - so we can translate the whole snake to match another',
+describe('knot comparer',
          function () {
-    "use strict";
+ "use strict";
     it("should detect two identical snakes as equal", function () {
         var snake1 = [snakePiece([1,2], false, UP, UP, 0),
                       snakePiece([1,1], false, UP, UP, 0),
@@ -57,8 +57,8 @@ describe('Comparer - picking a "root" piece for a snake - so we can translate th
     }  
       );
              
-             it("should get this bigger knot right", function(){
-                 var snkae1 = [snakePiece([6,3], false, LEFT, LEFT),
+            it("should get this bigger knot right", function(){
+                 var snake1 = [snakePiece([6,3], false, LEFT, LEFT),
                                snakePiece([7,3], false, UP, LEFT),
                                snakePiece([7,4], false, UP, UP),
                                snakePiece([7,5], false, RIGHT, UP),
@@ -74,6 +74,7 @@ describe('Comparer - picking a "root" piece for a snake - so we can translate th
                                snakePiece([5,7], false, RIGHT, DOWN),
                                snakePiece([4,7], false, RIGHT, RIGHT),
                                snakePiece([3,7], false, UP, RIGHT)];
+                expect(knotComparer(snake1, snake2)).toBeTruthy();
              }
                );
 });

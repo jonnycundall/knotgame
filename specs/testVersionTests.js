@@ -5,7 +5,7 @@ describe('the testversion method is a tool for converting a live snake into a te
                {
                    var snake1 = [snakePiece([1,2], false, UP, UP, 0),
                       snakePiece([1,1], false, UP, UP, 0)];
-                   expect(snake1.testVersion
+                   expect(snake1.testVersion()
                           ).toBe('[snakePiece([1,2], false, UP, UP, 0),snakePiece([1,1], false, UP, UP, 0)]');
                });
          
