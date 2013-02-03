@@ -1,5 +1,5 @@
 var gameArea, initializeRenderer, snake, userInput, directionGuider,
-    snakePiece, stateMachine, gameInterface, snakeComparer, levels, snakeDrawer,
+    snakePiece, stateMachine, gameInterface, snakeComparer, levels, snakeDrawer, knotRunner, knotComparer
     NONE = [0, 0],
     LEFT = [-1, 0],
     DOWN = [0, 1],
@@ -12,8 +12,9 @@ var gameArea, initializeRenderer, snake, userInput, directionGuider,
     STATE_FAILURE = 4;
 
 gameInterface = function (snake, levels) {
-        var face = {}, newDirection, currentLevel;
+        var face = {}, newDirection, currentLevel, runner;
         currentLevel = 1;
+        runner = knotRunner();
         face.move = function (input) {
             newDirection = snake.move(input);
             input.setDirection(newDirection);
@@ -35,14 +36,15 @@ gameInterface = function (snake, levels) {
             var candidate, master, comparer;
             candidate = snake.snake();
             master = levels[currentLevel];
+            console.log(knotRunner(candidate));
             
             if(knotComparer(master, candidate) === true)
             {
                 currentLevel = currentLevel + 1;
                 return STATE_SUCCESS;
             }
-            console.log(snake.testVersion());
-            console.log(master);
+            //console.log(snake.testVersion());
+            //console.log(master);
             return STATE_FAILURE;
         };
     
@@ -402,64 +404,18 @@ stateMachine = function (gameInterface) {
 };
         
 knotComparer = function (snake1, snake2) {
-    'use strict';
-    var differenceVector, denudedSnake1, denudedSnake2, denude, 
-        topleft1, topleft2, splicepoint1, splicepoint2, 
-        findSplicePoint, transformToMatch, transform1, transform2, compareTransformedSnakes;
-    denude = function (snake) {
-        return snake.map(function(snakePiece) {
-            return snakePiece.point;
-        });
-    };
-    
-    findSplicePoint = function(point, arrayOfSnakePieces){
-        for(var i = 0; i < snake1.length; i++){
-            if(Geometry.pointEquals(point, arrayOfSnakePieces[i].point))
-               return i;
-        }
-        console.log('error - point not in snake in findSplicePoint');
-    };
-        
-    transformToMatch = function(point, translationVector, arrayOfsnakePieces) {
-        var pivotIndex = findSplicePoint(point, arrayOfsnakePieces);
-        return arrayOfsnakePieces.slice(pivotIndex)
-            .concat(arrayOfsnakePieces.slice(0,pivotIndex))
-            .map(function (piece) { return snakePiece(
-                Geometry.addVectors(piece.point, translationVector),
-                piece.goUnder,
-                piece.priorDirection,
-                piece.postDirection,
-                piece.index
-            );});
-    };
-    
-    compareTransformedSnakes = function (transform1, transform2) {
-    	for(var i = 0; i < transform1.length; i++) {
-        if(!Geometry.pointEquals(transform1[i].point, transform2[i].point))
-            return false;
-        if(transform1[i].goUnder != transform2[i].goUnder)
-            return false;
-   		 }
-    return true;
-    };
-    if(!snake1) return false;
-    if(!snake2) return false;
-    
-    //cut out the last piece as it is the overlap
-    snake2.splice(snake2.length -1);
-    
-    denudedSnake1 = denude(snake1);
-    denudedSnake2 = denude(snake2);
-    topleft1 = Geometry.topleftest(denudedSnake1);
-    topleft2 = Geometry.topleftest(denudedSnake2);
-    differenceVector = Geometry.difference(topleft1, topleft2); 
-    transform1 = transformToMatch(topleft1, differenceVector, snake1)
-    transform2 = transformToMatch(topleft2, [0,0], snake2)
-       
-    if(compareTransformedSnakes(transform1, transform2))
-        return true;
-    var reversed = transform2.reverse().slice(-1).concat(transform2.slice(0,-1));
-    return compareTransformedSnakes(transform1, reversed);
+   var goal, candidate, i, forwardGoal, reverseGoal;
+   goal = knotRunner(snake1);
+   forwardGoal = goal.join('');
+   reverseGoal = goal.reverse().join('').replace('r','l');
+   candidate = knotRunner(snake2);
+   for(i = 0; i < candidate.length; i++){
+      candidate = candidate.splice(1).concat(candidate);
+      if(candidate.join('') === forwardGoal || candidate.join('') === reverseGoal)
+      	return true;
+      
+   }
+   return false;
 };
 
 levels = function (renderer, gameArea) {
@@ -492,7 +448,7 @@ levels = function (renderer, gameArea) {
     //level 2: the simplest trefoil
     2: makeMovement([[RIGHT, true], [RIGHT], [DOWN], 
                      [LEFT], [LEFT], [UP, true], [UP], [RIGHT], 
-                     [DOWN, true], [DOWN, true], [DOWN, true],[LEFT],[LEFT], [UP],[UP], [RIGHT]]),
+                     [DOWN, true], [DOWN, true], [DOWN, true],[LEFT],[LEFT], [UP],[UP], [RIGHT], [RIGHT]])
     };
     
     return {
@@ -538,4 +494,63 @@ snakeDrawer = function (renderer) {
     
     return obj;
 }
-    
+
+knotRunner = function (arrayOfSnakePieces){
+   var obj, convertToTurn, piece, turn, i, j, piece, comparePiece, simplifiedSnake = [],
+   RIGHTTURN = 'r', 
+   LEFTTURN = 'l',
+   OVER = 'o',
+   UNDER = 'u';
+   
+   convertToTurn = function(prev, post) {
+       if(!(prev && post)) return null;
+   
+       switch(prev){
+           case(UP):
+              if(post === LEFT) return LEFTTURN;
+              if(post === RIGHT) return RIGHTTURN;
+              break;
+           case(DOWN):
+              if(post === RIGHT) return LEFTTURN;
+              if(post === LEFT) return RIGHTTURN;
+              break;
+           case(LEFT):
+              if(post === DOWN) return LEFTTURN;
+              if(post === UP) return RIGHTTURN;
+              break;
+           case(RIGHT):
+              if(post === UP) return LEFTTURN;
+              if(post === DOWN) return RIGHTTURN;
+              break;
+       }
+       
+       //if no match, return null, it's not a turn
+       return null;
+   };
+   
+   if(!arrayOfSnakePieces) return [];
+   
+   for (i=0; i< arrayOfSnakePieces.length - 1; i++){//we don't count the last piece as it's an overlap
+       piece = arrayOfSnakePieces[i];
+       turn = convertToTurn(piece.priorDirection, piece.postDirection);
+       if(turn !== null) simplifiedSnake.push(turn);
+       for(j = 0; j < arrayOfSnakePieces.length - 1; j++){
+       	   if(i !== j){
+              comparePiece = arrayOfSnakePieces[j];
+              if(Geometry.pointEquals(piece.point, comparePiece.point)){
+                 //check if the point is over or under
+                 if(piece.goUnder === true && comparePiece.goUnder === false){
+                 	simplifiedSnake.push(UNDER);}
+                 if(piece.goUnder === comparePiece.goUnder && i < j){
+                    simplifiedSnake.push(UNDER);}
+                 if(piece.goUnder === comparePiece.goUnder && i > j){
+                    simplifiedSnake.push(OVER);}
+                 if(piece.goUnder === false && comparePiece.goUnder === true){
+                    simplifiedSnake.push(OVER);}
+              }
+           }
+       }
+   }
+   return simplifiedSnake;
+  
+}
