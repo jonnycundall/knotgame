@@ -36,6 +36,7 @@ gameInterface = function (snake, levels) {
             var candidate, master, comparer;
             candidate = snake.snake();
             master = levels[currentLevel];
+            console.log(knotRunner(master));
             console.log(knotRunner(candidate));
             
             if(knotComparer(master, candidate) === true)
@@ -50,6 +51,7 @@ gameInterface = function (snake, levels) {
     
         face.showSuccess = function () {
             console.log('success');
+            snake.reset();
             return STATE_ALIVE;
         };
     
@@ -196,7 +198,8 @@ snake = function (renderer, gameArea, startPoint) {
     
     obj.isClosed = function () { return isClosed([head].concat(tail)) }
     
-    obj.reset = function () { //do nothing for now
+    obj.reset = function () { 
+    	tail = [];
     };
     
     //output a string representation of itself so I can use it in a test
@@ -407,8 +410,12 @@ knotComparer = function (snake1, snake2) {
    var goal, candidate, i, forwardGoal, reverseGoal;
    goal = knotRunner(snake1);
    forwardGoal = goal.join('');
-   reverseGoal = goal.reverse().join('').replace('r','l');
+   reverseGoal = goal.reverse().join('').replace(/r/g,'X').replace(/l/g,'r').replace(/X/g,'l');
    candidate = knotRunner(snake2);
+   
+   if(goal.length + candidate.length === 0) //typically both empty arrays
+      return true;
+   
    for(i = 0; i < candidate.length; i++){
       candidate = candidate.splice(1).concat(candidate);
       if(candidate.join('') === forwardGoal || candidate.join('') === reverseGoal)

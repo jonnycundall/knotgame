@@ -28,20 +28,7 @@ describe('knot comparer',
         expect(knotComparer(snake1, snake2)).toBeTruthy();
     }  
       );
-             
-   it("should detect differences in underness", function () {
-        var snake1 = [snakePiece([1,2], false, UP, UP, 0),
-                      snakePiece([1,1], false, UP, UP, 0),
-                      snakePiece([1,0], false, UP, UP, 0),
-                     snakePiece([2,0], false, UP, UP, 0)];
-        var snake2 = [snakePiece([2,3], false, UP, UP, 0),
-                      snakePiece([2,2], true, UP, UP, 0),
-                      snakePiece([2,1], false, UP, UP, 0),
-                     snakePiece([3,1], false, UP, UP, 0),
-                     snakePiece([4,1], false, UP, UP, 0)];
-        expect(knotComparer(snake1, snake2)).toBeFalsy();
-    }  
-      );
+
              
     it("should detect knots starting at differen point but covering the same ground as the same", function () {
         var snake1 = [snakePiece([1,0], false, UP, UP, 0),
@@ -78,7 +65,7 @@ describe('knot comparer',
              }
              );
              
-   /*         it("and this bigger knot right", function(){
+            it("and this bigger knot right", function(){
              var snake1 = [snakePiece([6,3], false, LEFT, LEFT),
                snakePiece([7,3], false, UP, LEFT),
                snakePiece([7,4], false, UP, UP),
@@ -97,7 +84,7 @@ describe('knot comparer',
              snakePiece([16,13], false, UP, LEFT)]; 
                expect(knotComparer(snake1, snake2)).toBeTruthy();
                }
-               );*/
+               );
                
             it("knotRunner should work", function() {
                 var runner = knotRunner();
@@ -108,7 +95,7 @@ describe('knot comparer',
                snakePiece([6,5], false, RIGHT, RIGHT),
                snakePiece([5,5], false, DOWN, RIGHT),
                snakePiece([5,4], false, DOWN, DOWN)];
-               expect(runner.runKnot(snake1)).toEqual(['r','r','r','r']);
+               expect(knotRunner(snake1)).toEqual(['l','l','l']);
             });
                
 });
