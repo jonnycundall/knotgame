@@ -1,5 +1,6 @@
-var gameArea, initializeRenderer, snake, userInput, directionGuider,
-    snakePiece, stateMachine, gameInterface, snakeComparer, levels, snakeDrawer, knotRunner, knotComparer
+/*global console window*/
+var gameArea, initializeRenderer, snake, userInput, directionGuider, Geometry,
+    snakePiece, stateMachine, gameInterface, snakeComparer, levels, snakeDrawer, knotRunner, knotComparer, knotRunResultComparer,
     NONE = [0, 0],
     LEFT = [-1, 0],
     DOWN = [0, 1],
@@ -9,7 +10,8 @@ var gameArea, initializeRenderer, snake, userInput, directionGuider,
     STATE_ALIVE = 1,
     STATE_CHECK_SUCCESS = 2,
     STATE_SUCCESS = 3,
-    STATE_FAILURE = 4;
+    STATE_FAILURE = 4,
+    STATE_PAUSE = 5;
 
 gameInterface = function (snake, levels) {
         var face = {}, newDirection, currentLevel, runner;
@@ -57,7 +59,13 @@ gameInterface = function (snake, levels) {
     
         face.showFailure = function () {
             console.log('failure');
-            return STATE_ALIVE;
+            return STATE_PAUSE;
+        };
+        
+        face.pause = function(input){
+           if(input.goUnder() === true)
+              return STATE_ALIVE;
+           return STATE_PAUSE;
         };
     
         face.currentLevel = function () { return currentLevel; }
@@ -180,6 +188,9 @@ snake = function (renderer, gameArea, startPoint) {
             tail = [head];
         }
         
+        if(head.X < 0 || head.Y < 0 || head.X > gameArea.width || head.Y > gameArea.height)
+        	tail = [];
+        
         priorDirection = direction;
         return direction;
     };
@@ -196,7 +207,7 @@ snake = function (renderer, gameArea, startPoint) {
         return tail;
     };
     
-    obj.isClosed = function () { return isClosed([head].concat(tail)) }
+    obj.isClosed = function () { return isClosed([head].concat(tail)); }
     
     obj.reset = function () { 
     	tail = [];
@@ -399,6 +410,9 @@ stateMachine = function (gameInterface) {
             case STATE_FAILURE:
                 action = gameInterface.showFailure;
                 break;
+            case STATE_PAUSE:
+                action = gameInterface.pause;
+                break;
             default:
                 console.log('unexpected state');
         }
@@ -407,11 +421,18 @@ stateMachine = function (gameInterface) {
 };
         
 knotComparer = function (snake1, snake2) {
-   var goal, candidate, i, forwardGoal, reverseGoal;
+   var goal, candidate;
    goal = knotRunner(snake1);
+
+   candidate = knotRunner(snake2);
+   
+   return knotRunResultComparer(goal, candidate);
+};
+
+knotRunResultComparer = function (goal, candidate) {
+   var i, forwardGoal, reverseGoal;
    forwardGoal = goal.join('');
    reverseGoal = goal.reverse().join('').replace(/r/g,'X').replace(/l/g,'r').replace(/X/g,'l');
-   candidate = knotRunner(snake2);
    
    if(goal.length + candidate.length === 0) //typically both empty arrays
       return true;
@@ -419,8 +440,7 @@ knotComparer = function (snake1, snake2) {
    for(i = 0; i < candidate.length; i++){
       candidate = candidate.splice(1).concat(candidate);
       if(candidate.join('') === forwardGoal || candidate.join('') === reverseGoal)
-      	return true;
-      
+         return true;
    }
    return false;
 };
@@ -456,7 +476,7 @@ levels = function (renderer, gameArea) {
     2: makeMovement([[RIGHT, true], [RIGHT], [DOWN], 
                      [LEFT], [LEFT], [UP, true], [UP], [RIGHT], 
                      [DOWN, true], [DOWN, true], [DOWN, true],[LEFT],[LEFT], [UP],[UP], [RIGHT], [RIGHT]])
-    };
+        };
     
     return {
         1: levelList[1],

@@ -97,5 +97,24 @@ describe('knot comparer',
                snakePiece([5,4], false, DOWN, DOWN)];
                expect(knotRunner(snake1)).toEqual(['l','l','l']);
             });
-               
+            
+            it("should compare the knot Runner results", function() {
+               var runResult1, runResult2;
+               runResult1 = ["o", "o", "r", "r", "r", "o", "u", "r", "r", "u", "r", "u", "r", "r"];
+               runResult2 = ["o", "o", "l", "l", "l", "o", "u", "l", "l", "u", "l", "u", "l", "l"];
+               expect(knotRunResultComparer(runResult1, runResult2)).toBeTruthy();
+            });
+            
+            it("should compare the slightly awry knot Runner results", function() {
+               var runResult1, runResult2;
+               runResult1 = ["o", "o", "r", "r", "r", "o", "u", "r", "r", "u", "r", "u", "r", "r"];
+               runResult2 = ["o", "o", "l", "r", "l", "o", "u", "l", "l", "u", "l", "u", "l", "l"];
+               expect(knotRunResultComparer(runResult1, runResult2)).toBeFalsy();
+            });
+            
+            it("should compare theses knotRunner results" , function () {
+               var runResult1 = ["o", "o", "r", "r", "r", "o", "u", "r", "r", "u", "r", "u", "r", "r"];
+               var runResult2 = ["l", "l", "o", "o", "l", "l", "l", "o", "u", "l", "l", "u", "l", "u"];
+               expect(knotRunResultComparer(runResult1, runResult2)).toBeTruthy();
+            });
 });
