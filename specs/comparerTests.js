@@ -87,7 +87,6 @@ describe('knot comparer',
                );
                
             it("knotRunner should work", function() {
-                var runner = knotRunner();
                 var snake1 = [snakePiece([6,3], false, LEFT, LEFT),
                snakePiece([7,3], false, UP, LEFT),
                snakePiece([7,4], false, UP, UP),
@@ -116,5 +115,32 @@ describe('knot comparer',
                var runResult1 = ["o", "o", "r", "r", "r", "o", "u", "r", "r", "u", "r", "u", "r", "r"];
                var runResult2 = ["l", "l", "o", "o", "l", "l", "l", "o", "u", "l", "l", "u", "l", "u"];
                expect(knotRunResultComparer(runResult1, runResult2)).toBeTruthy();
+            });
+            
+            it("wtf is going on with these knot runner results for the level goals?", function () {
+        	    var drawer, makeMovement, area, renderer, levelGoal;
+        	    area = gameArea({ height: 50, width: 50 });
+        	    //this is a copy of the function used to create the 
+        	    makeMovement = function(actions) {
+			        var cord, input, actions;
+			        cord = snake({}, area, [2,2]); 
+			        input = userInput();
+			        actions.map(function (a) { 
+			            input.setDirection(a[0]);
+			            if(a.length > 1)
+			            {
+			                input.goUnder();
+			            }else{
+			                input.clearUnderness();
+			            }
+			            cord.move(input);
+			        });
+			        
+			        return cord.snake(); 
+				}
+				drawer = snakeDrawer(renderer);
+				
+				levelGoal = makeMovement([[LEFT],[UP],[UP],[RIGHT],[DOWN],[RIGHT],[DOWN],[LEFT], [LEFT]]);     
+                expect(knotRunner(levelGoal)).toEqual(['r','r','r','l','r','r']);
             });
 });

@@ -230,6 +230,10 @@ snake = function (renderer, gameArea, startPoint) {
                 .join('');
     };
     
+    obj.setPriorDirection = function (direction) {
+    	priorDirection = direction;
+    };
+    
     return obj;
 };
 
@@ -451,6 +455,7 @@ levels = function (renderer, gameArea) {
     makeMovement = function(actions) {
         var cord, input, actions;
         cord = snake(renderer, gameArea, [2,2]); 
+        cord.setPriorDirection(actions[0][0]);
         input = userInput();
         actions.map(function (a) { 
             input.setDirection(a[0]);
@@ -468,12 +473,16 @@ levels = function (renderer, gameArea) {
     drawer = snakeDrawer(renderer);
     levelList = 
     {
+    //never end on a turn!
     //level 1: just the unknot
         
     1: makeMovement([[RIGHT],[RIGHT],[DOWN],[DOWN],[LEFT],[LEFT],[UP],[UP], [RIGHT]])   ,
-            
-    //level 2: the simplest trefoil
-    2: makeMovement([[RIGHT, true], [RIGHT], [DOWN], 
+    // a lumpy loop
+    2: makeMovement([[LEFT],[UP],[UP],[RIGHT],[DOWN],[RIGHT],[DOWN],[LEFT], [LEFT]]),
+    //level 3: a lumpier loop
+    3: makeMovement([[UP],[RIGHT],[RIGHT],[DOWN],[RIGHT],[DOWN],[DOWN],[LEFT],[LEFT],[UP],[LEFT],[UP],[UP]]),
+    //level 3: the simplest trefoil
+    4: makeMovement([ [RIGHT], [DOWN], 
                      [LEFT], [LEFT], [UP, true], [UP], [RIGHT], 
                      [DOWN, true], [DOWN, true], [DOWN, true],[LEFT],[LEFT], [UP],[UP], [RIGHT], [RIGHT]])
         };
@@ -481,6 +490,8 @@ levels = function (renderer, gameArea) {
     return {
         1: levelList[1],
         2: levelList[2],
+        3: levelList[3],
+        4: levelList[4],
         drawGoal: function (levelNumber) {
             drawer.drawClosed(levelList[levelNumber]);
     }
@@ -557,25 +568,27 @@ knotRunner = function (arrayOfSnakePieces){
    
    if(!arrayOfSnakePieces) return [];
    
-   for (i=0; i< arrayOfSnakePieces.length - 1; i++){//we don't count the last piece as it's an overlap
+   for (i=0; i< arrayOfSnakePieces.length; i++){
        piece = arrayOfSnakePieces[i];
        turn = convertToTurn(piece.priorDirection, piece.postDirection);
        if(turn !== null) simplifiedSnake.push(turn);
-       for(j = 0; j < arrayOfSnakePieces.length - 1; j++){
-       	   if(i !== j){
-              comparePiece = arrayOfSnakePieces[j];
-              if(Geometry.pointEquals(piece.point, comparePiece.point)){
-                 //check if the point is over or under
-                 if(piece.goUnder === true && comparePiece.goUnder === false){
-                 	simplifiedSnake.push(UNDER);}
-                 if(piece.goUnder === comparePiece.goUnder && i < j){
-                    simplifiedSnake.push(UNDER);}
-                 if(piece.goUnder === comparePiece.goUnder && i > j){
-                    simplifiedSnake.push(OVER);}
-                 if(piece.goUnder === false && comparePiece.goUnder === true){
-                    simplifiedSnake.push(OVER);}
-              }
-           }
+       if(i !== 0){ //we don't count the last piece (first in array) as it's an overlap
+	       for(j = 1; j < arrayOfSnakePieces.length; j++){
+	       	   if(i !== j){
+	              comparePiece = arrayOfSnakePieces[j];
+	              if(Geometry.pointEquals(piece.point, comparePiece.point)){
+	                 //check if the point is over or under
+	                 if(piece.goUnder === true && comparePiece.goUnder === false){
+	                 	simplifiedSnake.push(UNDER);}
+	                 if(piece.goUnder === comparePiece.goUnder && i < j){
+	                    simplifiedSnake.push(UNDER);}
+	                 if(piece.goUnder === comparePiece.goUnder && i > j){
+	                    simplifiedSnake.push(OVER);}
+	                 if(piece.goUnder === false && comparePiece.goUnder === true){
+	                    simplifiedSnake.push(OVER);}
+	              }
+	           }
+	       }
        }
    }
    return simplifiedSnake;
