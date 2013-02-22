@@ -11,7 +11,9 @@ var gameArea, initializeRenderer, snake, userInput, directionGuider, Geometry,
     STATE_CHECK_SUCCESS = 2,
     STATE_SUCCESS = 3,
     STATE_FAILURE = 4,
-    STATE_PAUSE = 5;
+    STATE_PAUSE = 5,
+    STATE_SHOWING_SUCCESS = 6,
+    STATE_SHOWING_FAILURE = 7;
 
 gameInterface = function (snake, levels) {
         var face = {}, newDirection, currentLevel, runner;
@@ -44,7 +46,7 @@ gameInterface = function (snake, levels) {
             
             if(knotComparer(master, candidate) === true)
             {
-                currentLevel = currentLevel + 1;
+                
                 return STATE_SUCCESS;
             }
             //console.log(snake.testVersion());
@@ -54,15 +56,28 @@ gameInterface = function (snake, levels) {
     
         face.showSuccess = function () {
             console.log('success');
-            snake.reset();
+            
             snake.justPassed();
+            
+            return STATE_SHOWING_SUCCESS;
+        };
+        
+        face.startNewLevel = function ()
+        {
+        	currentLevel = currentLevel + 1;
+        	snake.reset();
             return STATE_ALIVE;
         };
-    
+        
+        face.startAgain = function () {
+            snake.reset();
+            return STATE_ALIVE;
+        };
+        
         face.showFailure = function () {
             console.log('failure');
             snake.justFailed();
-            return STATE_ALIVE;
+            return STATE_SHOWING_FAILURE;
         };
         
         face.pause = function(input){
@@ -186,13 +201,16 @@ snake = function (renderer, gameArea, startPoint) {
             tail.splice(0, 0, head);
         }
         
-        // restart snkae when we run out of rope - otherwise it's hard to join up
+        // restart snake when we run out of rope - otherwise it's hard to join up
         if (tail.length >= maxLength) {
             tail = [head];
         }
         
         if(head.X < 0 || head.Y < 0 || head.X > gameArea.width || head.Y > gameArea.height)
-        	tail = [];
+        	{
+        		tail = [];
+        	    head = snakePiece([10,10], false, UP, UP, 0);
+        	}
         
         priorDirection = direction;
         return direction;
@@ -346,7 +364,7 @@ Geometry =  {
             if(a[0] === b[0] && a[1] === b[1])
                 {return 0; }
             if(a[0] + a[1] < b[0] + b[1]) 
-                {return -1}
+                {return -1; }
             if(a[0] + a[1] === b[0] + b[1])
             {
                 if(a[0] < b[0])
@@ -356,7 +374,7 @@ Geometry =  {
             return 1;
         };
         return arrayOfPoints.sort(sortfunction)[0]; 
-    },
+    }
 };
     
 directionGuider = function (area) {
@@ -414,8 +432,6 @@ stateMachine = function (gameInterface) {
     obj = {};
     obj.levelNumber = function () {return levelNumber; };
     obj.levelUp = function () {levelNumber = levelNumber + 1; };
-    obj.freeze = function () {mode = 'freeze'; };
-    obj.start = function () {mode = 'go'; };
     obj.do = function (input) {
         var result = action(input);
         switch (result) {
@@ -437,6 +453,12 @@ stateMachine = function (gameInterface) {
             case STATE_PAUSE:
                 action = gameInterface.pause;
                 break;
+            case STATE_SHOWING_SUCCESS:
+            	action = gameInterface.startNewLevel;
+            	break;
+            case STATE_SHOWING_FAILURE:
+            	action = gameInterface.startAgain;
+            	break;
             default:
                 console.log('unexpected state');
         }
@@ -509,7 +531,7 @@ levels = function (renderer, gameArea) {
     
     5: makeMovement([[RIGHT],[RIGHT],[DOWN],[DOWN],[LEFT],[LEFT],[UP],[RIGHT],[DOWN],[DOWN],[LEFT],[LEFT],[UP],[UP],[UP],[RIGHT],[RIGHT]]),
     //level 5: the simplest trefoil
-    6: makeMovement([ [RIGHT], [DOWN], 
+    6: makeMovement([ [RIGHT], [RIGHT], [DOWN], 
                      [LEFT], [LEFT], [UP, true], [UP], [RIGHT], 
                      [DOWN, true], [DOWN, true], [DOWN, true],[LEFT],[LEFT], [UP],[UP], [RIGHT], [RIGHT]])
         };
@@ -531,7 +553,7 @@ snakeDrawer = function (renderer) {
         return a.index < b.index ? -1 : 1;
     };
     
-    failColour = '#FA6B6E';
+    failColour = '#EDB2B6';
     passColour = '#D8F6CE';
     
     drawClosed = function (tail, colour) {
