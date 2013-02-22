@@ -26,6 +26,7 @@ gameInterface = function (snake, levels) {
             if (snake.isClosed() === true) { 
                 return STATE_CHECK_SUCCESS;
             }
+            snake.clearPassFailStatus();
             return STATE_ALIVE;
         };
             
@@ -54,12 +55,14 @@ gameInterface = function (snake, levels) {
         face.showSuccess = function () {
             console.log('success');
             snake.reset();
+            snake.justPassed();
             return STATE_ALIVE;
         };
     
         face.showFailure = function () {
             console.log('failure');
-            return STATE_PAUSE;
+            snake.justFailed();
+            return STATE_ALIVE;
         };
         
         face.pause = function(input){
@@ -117,7 +120,7 @@ gameArea = function (canvas) {
 snake = function (renderer, gameArea, startPoint) {
     "use strict";
     var head, tail, tailTip, obj, nextSquare, maxLength, guider, 
-        overlap, priorDirection, index, compareForRenderOrder, isClosed, drawer;
+        overlap, priorDirection, index, compareForRenderOrder, isClosed, drawer, justFailed, justPassed;
     head = snakePiece(startPoint, false);
     tail = [];
     maxLength = 30;
@@ -198,7 +201,12 @@ snake = function (renderer, gameArea, startPoint) {
     obj.draw = function () {
         if(tail && this.isClosed(tail))
         {
-            return drawer.drawClosed(tail);
+        	if(justFailed){
+        		return drawer.drawFailed(tail);
+        	}
+            if(justPassed){
+        		return drawer.drawPassed(tail);
+        	}
         }
         return drawer.drawOpen(tail);
     };
@@ -234,6 +242,18 @@ snake = function (renderer, gameArea, startPoint) {
     	priorDirection = direction;
     };
     
+    obj.justPassed = function () {
+    	justPassed = true;
+    };
+    
+    obj.justFailed = function () {
+    	justFailed = true;
+    };
+    
+    obj.clearPassFailStatus = function () {
+    	justFailed = false;
+    	justPassed = false;
+    };
     return obj;
 };
 
@@ -434,16 +454,19 @@ knotComparer = function (snake1, snake2) {
 };
 
 knotRunResultComparer = function (goal, candidate) {
-   var i, forwardGoal, reverseGoal;
+   var i, forwardGoal, reverseGoal, mirrorGoal, reverseMirrorGoal, joined;
    forwardGoal = goal.join('');
-   reverseGoal = goal.reverse().join('').replace(/r/g,'X').replace(/l/g,'r').replace(/X/g,'l');
+   reverseMirrorGoal = goal.reverse().join('');
+   reverseGoal = reverseMirrorGoal.replace(/r/g,'X').replace(/l/g,'r').replace(/X/g,'l');
+   mirrorGoal = forwardGoal.replace(/r/g,'X').replace(/l/g,'r').replace(/X/g,'l');
    
    if(goal.length + candidate.length === 0) //typically both empty arrays
       return true;
    
    for(i = 0; i < candidate.length; i++){
       candidate = candidate.splice(1).concat(candidate);
-      if(candidate.join('') === forwardGoal || candidate.join('') === reverseGoal)
+      joined = candidate.join('');
+      if(joined === forwardGoal || joined === reverseGoal || joined === mirrorGoal || joined === reverseMirrorGoal)
          return true;
    }
    return false;
@@ -481,26 +504,24 @@ levels = function (renderer, gameArea) {
     2: makeMovement([[LEFT],[UP],[UP],[RIGHT],[DOWN],[RIGHT],[DOWN],[LEFT], [LEFT]]),
     //level 3: a lumpier loop
     3: makeMovement([[UP],[RIGHT],[RIGHT],[DOWN],[RIGHT],[DOWN],[DOWN],[LEFT],[LEFT],[UP],[LEFT],[UP],[UP]]),
-    //level 3: the simplest trefoil
-    4: makeMovement([ [RIGHT], [DOWN], 
+    //level 4: the first overlap
+    4: makeMovement([[UP], [UP],[LEFT],[DOWN],[RIGHT],[RIGHT],[DOWN],[LEFT],[UP]]),
+    
+    5: makeMovement([[RIGHT],[RIGHT],[DOWN],[DOWN],[LEFT],[LEFT],[UP],[RIGHT],[DOWN],[DOWN],[LEFT],[LEFT],[UP],[UP],[UP],[RIGHT],[RIGHT]]),
+    //level 5: the simplest trefoil
+    6: makeMovement([ [RIGHT], [DOWN], 
                      [LEFT], [LEFT], [UP, true], [UP], [RIGHT], 
                      [DOWN, true], [DOWN, true], [DOWN, true],[LEFT],[LEFT], [UP],[UP], [RIGHT], [RIGHT]])
         };
     
-    return {
-        1: levelList[1],
-        2: levelList[2],
-        3: levelList[3],
-        4: levelList[4],
-        drawGoal: function (levelNumber) {
-            drawer.drawClosed(levelList[levelNumber]);
-    }
-    };
-    
+    levelList.drawGoal = function (levelNumber) {
+            drawer.drawPassed(levelList[levelNumber]);
+            };
+    return levelList;  
 }
     
 snakeDrawer = function (renderer) {
-    var compareForRenderOrder = function (a, b) {
+    var failColour, passColour, obj, drawClosed, compareForRenderOrder = function (a, b) {
         if (a.goUnder && !b.goUnder) {
             return -1;
         }
@@ -509,7 +530,21 @@ snakeDrawer = function (renderer) {
         }
         return a.index < b.index ? -1 : 1;
     };
-    var obj = {};
+    
+    failColour = '#FA6B6E';
+    passColour = '#D8F6CE';
+    
+    drawClosed = function (tail, colour) {
+        //for now, we're just missing the end off so we don't show an ugly overlap
+        var i, drawOrder;
+
+        drawOrder = Array.prototype.slice.call(tail).sort(compareForRenderOrder);
+        for (i = 0; i < drawOrder.length -1; i++) {
+            renderer.drawBodySegment(drawOrder[i], colour);
+        }
+    };
+    
+    obj = {};
     
     obj.drawOpen = function (tail) {
         var i, drawOrder;
@@ -520,14 +555,12 @@ snakeDrawer = function (renderer) {
         }
     };
     
-    obj.drawClosed = function (tail) {
-        //for now, we're just missing the end off so we don't show an ugly overlap
-        var i, drawOrder;
-
-        drawOrder = Array.prototype.slice.call(tail).sort(compareForRenderOrder);
-        for (i = 0; i < drawOrder.length -1; i++) {
-            renderer.drawBodySegment(drawOrder[i]);
-        }
+    obj.drawPassed = function (tail) {
+   		return drawClosed(tail, passColour);
+    };
+    
+    obj.drawFailed = function (tail) {
+    	return drawClosed(tail, failColour);
     };
     
     return obj;
